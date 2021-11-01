@@ -1,9 +1,17 @@
-# Functions for the creation, deletion and modification of tables. Includes functions to get related table names and fetch data from tables.
+"""
+Functions for the creation, deletion and modification of tables. 
+Includes functions to get related table names and fetch data from tables.
+
+Made by : James Miller (z5257531)
+Last Modification : 2 / 11 / 2021
+Last Modified by : James Miller (z5257531)
+"""
+
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from datetime import datetime
-from allowlist_modifyTables_helpers import validateID, list_table_names
+from allowlist_modifyTables_helpers import validateID
 
 @validateID
 def create_organization_table(org_id, dynamodb=None):
@@ -13,7 +21,7 @@ def create_organization_table(org_id, dynamodb=None):
 
 	Args:
 		org_id (int/str): the name of the org the table is for
-		dynamodb (dynamodb service resource, optional): DynamoDB connection. Defaults to None, which will uses the localhost:8000 instead of a given region
+		dynamodb (dynamodb service resource, optional): DynamoDB connection. Defaults to None, which will uses the localhost:8000 instead of any region
 
 	Raises:
 		ValueError: if the repo_id is None, or a repo already exists for the given ID
@@ -78,7 +86,17 @@ def create_organization_table(org_id, dynamodb=None):
 
 @validateID
 def read_repo(org_id, repo_id, dynamodb=None):
-	# TODO
+	"""
+	Fetches all whitelist terms associated with an org_id and a repo_id
+
+	Args:
+		org_id (str/int): Organization ID that terms are for
+		repo_id (str/ing): Repo ID that is requested
+		dynamodb (dynamodb service resource, optional): DynamoDB connection. Defaults to None, which will uses the localhost:8000 instead of any region
+
+	Returns:
+		List: all whitelist terms in a list
+	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 	table_name = f'organization_{org_id}'
 	repo_id = f'repo_{repo_id}'
@@ -142,7 +160,15 @@ def insert_new_term(org_id, repo_id, new_term, dynamodb=None):
 
 @validateID
 def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
-	# TODO
+	"""
+	Same as insert_new_term, except for multiple iteratable terms
+
+	Args:
+		org_id (int/str): id of the organization to add term to
+		repo_id (int/str): id of repo to add term to
+		new_terms (list[str]): new terms to add to the whitelist
+		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
+	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 	table_name = f'organization_{org_id}'
 	repo_id = f'repo_{repo_id}'
@@ -162,7 +188,20 @@ def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 
 @validateID
 def delete_term(org_id, repo_id, term, dynamodb=None):
-	# TODO
+	"""Delete a specific term for a specific repo
+
+	Args:
+		org_id (int/str): id of the organization to add term to
+		repo_id (int/str): id of repo to add term to
+		term (str): term to remove from whitelist
+		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
+
+	Raises:
+		ValueError: In the case a bad parameter is given for repo or term, this error will be thrown
+
+	Returns:
+		AWS Response: The delete response for the given term
+	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 	table_name = f'organization_{org_id}'
 	repo_id = f'repo_{repo_id}'
@@ -183,7 +222,17 @@ def delete_term(org_id, repo_id, term, dynamodb=None):
 
 @validateID
 def delete_repo(org_id, repo_id, dynamodb=None):
-	# TODO
+	"""
+	Deletes all whitelisted terms associated with a specific repo_id
+
+	Args:
+		org_id (int/str): id of the organization to remove term to
+		repo_id (int/str): id of repo to remove all terms from
+		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
+
+	Returns:
+		int: count of objects deleted
+	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 	table_name = f'organization_{org_id}'
 	repo_id = f'repo_{repo_id}'
@@ -232,8 +281,8 @@ def delete_table(org_id, dynamodb=None):
 		NOTE: THIS IS AN IRREVERSABLE PROCESS. DON'T DO THIS WITHOUT A GOOD PLAN
 
 	Args:
-		org_id ([type]): [description]
-		dynamodb ([type], optional): [description]. Defaults to None.
+		org_id (int/str): id of organization to delete
+		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 	table_name = f'organization_{org_id}'
