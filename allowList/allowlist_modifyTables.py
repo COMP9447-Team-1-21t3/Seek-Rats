@@ -1,18 +1,16 @@
-# Functions for the creation, deletion and modification of tables
+# Functions for the creation, deletion and modification of tables. Includes functions to get related table names and fetch data from tables.
 import boto3
 from datetime import datetime
-from allowlist_modifyTables_helpers import validateID, list_table_names
+from allowlist_modifyTables_helpers import validateID
 
-def list_all_allowlist(dynamodb=None):
-	list_table_names(dynamodb)
-
-# should create a new table when a new repo is created with the name id.
-def create_table(repo_id, dynamodb=None):
-	"""[summary]
+def create_table(org_id, dynamodb=None):
+	"""
+	#	Will create an allowlist table on the given dynamodb connection, 'allowList_organization'. It has 2 primary attributes,
+	#	'repo_id' (string, hash key) and 'whitelist term' (string, sort key)
 
 	Args:
-		repo_id (int): [description]
-		dynamodb ([type], optional): [description]. Defaults to None, which will uses the localhost:8000 instead of a given repo
+		org_id (int/str): the name of the org the table is for
+		dynamodb (dynamodb service resource, optional): DynamoDB connection. Defaults to None, which will uses the localhost:8000 instead of a given region
 
 	Raises:
 		ValueError: if the repo_id is None, or a repo already exists for the given ID
@@ -20,11 +18,9 @@ def create_table(repo_id, dynamodb=None):
 	Returns:
 		True: If a new table is successfully created the function will return true
 	"""
-	if not repo_id :
-			raise ValueError("repo_id cannot be None")
-	table_name = f'allowList_repo_{str(repo_id)}'
-	if table_name in list_table_names():
-		raise ValueError(f"Repo with given ID already has a table: 'allowList_repo_{repo_id}'")
+	if not org_id :
+			raise ValueError("org_id cannot be None")
+	table_name = f'organization_{org_id}'
 	
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 	
@@ -32,23 +28,46 @@ def create_table(repo_id, dynamodb=None):
 		TableName=table_name,
 		KeySchema=[
 			{
-				'AttributeName': 'whitelist_term',
+				'AttributeName': 'repo_id',
 				'KeyType': 'HASH' # Partition key
 			}, 
 			{
-				'AttributeName': 'time_added',
+				'AttributeName': 'whitelist_term',
 				'KeyType': 'RANGE'  # Sort key
 			}
 		],
+		LocalSecondaryIndexes=[
+			{
+				'IndexName':"LatestAdditions",
+				'KeySchema':[
+					{
+						'AttributeName': 'repo_id',
+						'KeyType': 'HASH' # Partition key
+					}, 
+					{
+						'AttributeName': 'time_added',
+						'KeyType': 'RANGE'  # Sort key
+					}
+				],
+				'Projection':{
+					'ProjectionType':'ALL'
+				}
+			}
+		],
 		AttributeDefinitions=[
+			{
+				'AttributeName': 'repo_id',
+				'AttributeType': 'S' # string
+			}, 
 			{
 				'AttributeName': 'whitelist_term',
 				'AttributeType': 'S' # string
 			},
 			{
 				'AttributeName': 'time_added',
-				'AttributeType': 'S' #string [utc time]
+				'AttributeType': 'S' # string [UTC]
 			}
+
 		],
 		ProvisionedThroughput={
 			'ReadCapacityUnits': 5,
@@ -58,21 +77,32 @@ def create_table(repo_id, dynamodb=None):
 	return True
 
 @validateID
-def insert_new_term(repo_id, new_term, dynamodb=None):
+def insert_new_term(org_id, repo_id, new_term, dynamodb=None):
+	"""Inserts a new whitelist term into a given organization and repo
 
+	Args:
+		org_id (int/str): id of the organization to add term to
+		repo_id (int/str): id of repo to add term to
+		new_term (str): new term to add to the whitelist
+		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
+
+	Returns:
+		Response : Response from insert function
+	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'allowList_repo_{str(repo_id)}'
-	current_utc = str(datetime.datetime.utcnow())
+	table_name = f'organization_{str(org_id)}'
+	repo_id = f'repo_{repo_id}'
+	current_utc = str(datetime.utcnow())
 	table = dynamodb.Table(table_name)
 	response = table.put_item(
 		Item = {
+			'repo_id' : repo_id,
 			'whitelist_term': new_term,
 			'time_added': current_utc
 		}
 	)
 	return response
 
-# should delete an allowlist table when a repo gets deleted.
 @validateID
 def delete_table(repo_id, dynamodb=None):
 	
@@ -81,5 +111,3 @@ def delete_table(repo_id, dynamodb=None):
 	pass
 	# TODO aaaaaa
 
-if __name__ == '__main__':
-	create_table(123)
