@@ -7,11 +7,17 @@ Last Modification : 2 / 11 / 2021
 Last Modified by : James Miller (z5257531)
 """
 
+# External Imports
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from datetime import datetime
+import time
+
+# Internal Imports
 from allowlist_modifyTables_helpers import validateID
+
+#Global Vars
+tablename_prefix = "allowlist_organization"
 
 @validateID
 def create_organization_table(org_id, dynamodb=None):
@@ -31,7 +37,7 @@ def create_organization_table(org_id, dynamodb=None):
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 	
 	dynamodb.create_table(
 		TableName=table_name,
@@ -74,7 +80,7 @@ def create_organization_table(org_id, dynamodb=None):
 			},
 			{
 				'AttributeName': 'time_added',
-				'AttributeType': 'S' # string [UTC]
+				'AttributeType': 'N' # Epoch Time
 			}
 		],
 		ProvisionedThroughput={
@@ -98,7 +104,7 @@ def read_repo(org_id, repo_id, dynamodb=None):
 		List: all whitelist terms in a list
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 	repo_id = f'repo_{repo_id}'
 	to_return = []
 	query_params = {
@@ -144,16 +150,16 @@ def insert_new_term(org_id, repo_id, new_term, dynamodb=None):
 		Response : Response from insert function
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 	repo_id = f'repo_{repo_id}'
-	current_utc = str(datetime.utcnow())
+	creationTime = int(time.time())
 	
 	table = dynamodb.Table(table_name)
 	response = table.put_item(
 		Item = {
 			'repo_id' : repo_id,
 			'whitelist_term': new_term,
-			'time_added': current_utc
+			'time_added': creationTime
 		}
 	)
 	return response
@@ -170,18 +176,18 @@ def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 	repo_id = f'repo_{repo_id}'
 
 	table = dynamodb.Table(table_name)
 
 	with table.batch_writer() as batch:
 		for term in new_terms:
-			current_utc = str(datetime.utcnow())
+			creationTime = int(time.time())
 			content = {
 				'repo_id': repo_id,
 				'whitelist_term': term,
-				'time_added': current_utc
+				'time_added': creationTime
 			}
 			batch.put_item(Item = content)
 
@@ -203,7 +209,7 @@ def delete_term(org_id, repo_id, term, dynamodb=None):
 		AWS Response: The delete response for the given term
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 	repo_id = f'repo_{repo_id}'
 
 	try:
@@ -234,7 +240,7 @@ def delete_repo(org_id, repo_id, dynamodb=None):
 		int: count of objects deleted
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 	repo_id = f'repo_{repo_id}'
 	deleted_items = 0
 	query_params = {
@@ -285,8 +291,7 @@ def delete_table(org_id, dynamodb=None):
 		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
-	table_name = f'organization_{org_id}'
+	table_name = f'{tablename_prefix}_{org_id}'
 
 	table = dynamodb.Table(table_name)
 	table.delete
-
