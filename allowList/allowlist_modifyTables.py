@@ -134,6 +134,50 @@ def read_repo(org_id, repo_id, dynamodb=None):
 
 	return to_return
 
+@validateID
+def read_repo_with_info(org_id, repo_id, dynamodb=None):
+	"""
+	Fetches all whitelist terms associated with an org_id and a repo_id and the info associated with them
+
+	Args:
+		org_id (str/int): Organization ID that terms are for
+		repo_id (str/ing): Repo ID that is requested
+		dynamodb (dynamodb service resource, optional): DynamoDB connection. Defaults to None, which will uses the localhost:8000 instead of any region
+
+	Returns:
+		List: all whitelist terms in a list
+	"""
+	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
+	table_name = f'{tablename_prefix}_{org_id}'
+	repo_id = f'repo_{repo_id}'
+	to_return = []
+	query_params = {
+		'KeyConditionExpression':  Key('repo_id').eq(repo_id), 
+		'ProjectionExpression': "whitelist_term, info",
+		'ConsistentRead': True
+	}
+
+	table = dynamodb.Table(table_name)
+	response = table.query( **query_params)
+	for item in response['Items']:
+		to_return.append({'term':item['whitelist_term'], 'info':item['info']})
+
+	try:
+		while response['LastEvaluatedKey']:
+			# When you run a query, the last evaluated key is saved. We use that to find the next item we need to start with for searching
+			response = table.query(
+				**query_params,
+				ExclusiveStartKey = response['LastEvaluatedKey']
+			)
+			for item in response['Items']:
+				to_return.append(item['whitelist_term'])
+			
+	except KeyError as e:
+		# There is a possability the first pass won't leave any terms left - this is to catch that exclusive case
+		pass
+
+	return to_return
+
 
 @validateID
 def insert_new_term(org_id, repo_id, new_term, other_info=None, dynamodb=None):
