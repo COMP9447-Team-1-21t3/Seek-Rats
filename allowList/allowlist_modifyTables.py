@@ -136,7 +136,7 @@ def read_repo(org_id, repo_id, dynamodb=None):
 
 
 @validateID
-def insert_new_term(org_id, repo_id, new_term, dynamodb=None):
+def insert_new_term(org_id, repo_id, new_term, other_info=None, dynamodb=None):
 	"""
 	Inserts a new whitelist term into a given organization and repo
 
@@ -144,24 +144,27 @@ def insert_new_term(org_id, repo_id, new_term, dynamodb=None):
 		org_id (int/str): id of the organization to add term to
 		repo_id (int/str): id of repo to add term to
 		new_term (str): new term to add to the whitelist
+		other_info(dict, optional) other info to store alongside the whitelist term. Must be a dictionary the is convertable to json
 		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
 
 	Returns:
 		Response : Response from insert function
 	"""
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
+	other_info = {} if not other_info else other_info
 	table_name = f'{tablename_prefix}_{org_id}'
 	repo_id = f'repo_{repo_id}'
 	creationTime = int(time.time())
-	
+
+	item = {
+		'repo_id' : repo_id,
+		'whitelist_term': new_term,
+		'time_added': creationTime,
+		'info': other_info
+	}
 	table = dynamodb.Table(table_name)
-	response = table.put_item(
-		Item = {
-			'repo_id' : repo_id,
-			'whitelist_term': new_term,
-			'time_added': creationTime
-		}
-	)
+	response = table.put_item(Item=item)
+
 	return response
 
 @validateID
@@ -187,10 +190,46 @@ def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 			content = {
 				'repo_id': repo_id,
 				'whitelist_term': term,
-				'time_added': creationTime
+				'time_added': creationTime,
+				'info': {}
 			}
 			batch.put_item(Item = content)
+	
+	return True
 
+@validateID
+def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
+	"""
+	Same as insert_new_terms(), however will also store associated information of the terms with them
+
+	Args:
+		\b org_id (int/str): id of the organization to add term to
+		\b repo_id (int/str): id of repo to add term to
+		\b new_terms (list[dict]): new terms to add to the whitelist. They must be in an iterable object of dicts format, with the keys ['allow_term'] and ['info'] \n
+		\b dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
+
+	Returns:
+		True: Operation was successful
+	"""
+	
+	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
+	table_name = f'{tablename_prefix}_{org_id}'
+	repo_id = f'repo_{repo_id}'
+	table = dynamodb.Table(table_name)
+
+	with table.batch_writer() as batch:
+		for term in new_terms:
+			if 'allow_term' not in term.keys() or 'info' not in term.keys():
+				raise ValueError ("new_terms must be a list of dicts with the keys 'allow_term' and 'info'")
+			creationTime = int(time.time())
+			content = {
+				'repo_id': repo_id,
+				'whitelist_term': term['allow_term'],
+				'time_added': creationTime,
+				'info': term['info']
+			}
+			batch.put_item(Item = content)
+	return True
 
 @validateID
 def delete_term(org_id, repo_id, term, dynamodb=None):
