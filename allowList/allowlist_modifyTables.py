@@ -263,12 +263,12 @@ def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
 
 	with table.batch_writer() as batch:
 		for term in new_terms:
-			if 'allow_term' not in term.keys() or 'info' not in term.keys():
-				raise ValueError ("new_terms must be a list of dicts with the keys 'allow_term' and 'info'")
+			if 'term' not in term.keys() or 'info' not in term.keys():
+				raise ValueError ("new_terms must be a list of dicts with the keys 'term' and 'info'")
 			creationTime = int(time.time())
 			content = {
 				'repo_id': repo_id,
-				'whitelist_term': term['allow_term'],
+				'whitelist_term': term['term'],
 				'time_added': creationTime,
 				'info': term['info']
 			}
