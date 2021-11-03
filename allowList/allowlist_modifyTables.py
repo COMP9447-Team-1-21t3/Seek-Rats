@@ -247,10 +247,10 @@ def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
 	Same as insert_new_terms(), however will also store associated information of the terms with them
 
 	Args:
-		\b org_id (int/str): id of the organization to add term to
-		\b repo_id (int/str): id of repo to add term to
-		\b new_terms (list[dict]): new terms to add to the whitelist. They must be in an iterable object of dicts format, with the keys ['allow_term'] and ['info'] \n
-		\b dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
+		org_id (int/str): id of the organization to add term to
+		repo_id (int/str): id of repo to add term to
+		new_terms (list[dict]): new terms to add to the whitelist. They must be in an iterable object of dicts format, with the keys ['allow_term'] and ['info']
+		dynamodb (dynamodb service resource, optional): DynamoDB Connenction. Defaults to None, which will uses the localhost:8000 instead of a cloud server
 
 	Returns:
 		True: Operation was successful
