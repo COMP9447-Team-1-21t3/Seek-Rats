@@ -1,14 +1,45 @@
+import json
 import boto3
 from datetime import datetime, timezone
 import re
 
-#Function to report a finding to security hub given a title and description
+
+def lambda_handler(event, context):
+    httpMethod = event["httpMethod"]
+    commiter = ""
+    reporter = ""
+    commit_id = ""
+    repo_url = ""
+    secrets = ""
+    if httpMethod == "GET":
+        commiter = event["queryStringParameters"]["commiter"]
+        reporter = event["queryStringParameters"]["reporter"]
+        commit_id = event["queryStringParameters"]["commit_id"]
+        repo_url = event["queryStringParameters"]["repo_url"]
+        secrets = event["queryStringParameters"]["secrets"]
+    elif httpMethod == "POST":
+        body = json.loads(event["body"])
+        commiter = body["commiter"]
+        reporter = body["reporter"]
+        commit_id = body["commit_id"]
+        repo_url = body["repo_url"]
+        secrets = body["secrets"]
+
+    status = third_party_report(commiter, reporter, commit_id, repo_url, secrets)
+    return {
+        'statusCode': 200,
+        # 'body':json.dumps(event)
+        'body': json.dumps(status)
+    }
+
+
+# Function to report a finding to security hub given a title and description
 def report_secrets_finding(title, description):
     client = boto3.client('securityhub')
 
     filters = {
-        "ProductName": [ 
-            { 
+        "ProductName": [
+            {
                 "Comparison": "EQUALS",
                 "Value": "Default"
             }
@@ -25,20 +56,20 @@ def report_secrets_finding(title, description):
         if curr > max_num:
             max_num = curr
 
-    max_num += 1 
+    max_num += 1
 
-    #Get current datetime for finding report
-    uid_client = boto3.client("sts") 
+    # Get current datetime for finding report
+    uid_client = boto3.client("sts")
     uid = str(uid_client.get_caller_identity()["Account"])
     now = datetime.now(tz=timezone.utc)
     time = now.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
-    #Get region
+    # Get region
     region = str(client.meta.region_name)
 
-    #Prefill the required finding report template
+    # Prefill the required finding report template
     secret_val = description
-    product = "arn:aws:securityhub:" + region + ":" + uid + ":product/" + uid +  "/seekrat"
+    product = "arn:aws:securityhub:" + region + ":" + uid + ":product/" + uid + "/seekrat"
     find_id = "Id" + str(max_num)
 
     findings = [{
@@ -56,12 +87,11 @@ def report_secrets_finding(title, description):
         },
         "Id": find_id,
         "GeneratorId": "TestGeneratorId",
-        "ProductName": "seekrat",
         "ProductArn": "arn:aws:securityhub:ap-southeast-2:" + uid + ":product/" + uid + "/default",
         "Resources": [
             {
                 "Id": "arn:aws:secretsmanager:ap-southeast-2:" + uid + ":secretsmanager",
-                "Partition": "aws", 
+                "Partition": "aws",
                 "Region": "ap-southeast-2",
                 "Type": "Secrets"
             }
@@ -72,9 +102,9 @@ def report_secrets_finding(title, description):
         "UpdatedAt": time
     }]
 
-    #Push finding to secrets manager
+    # Push finding to secrets manager
     response = client.batch_import_findings(Findings=findings)
-    
+
     if response["SuccessCount"] == 1:
         print("success!")
         return "Success"
@@ -82,9 +112,9 @@ def report_secrets_finding(title, description):
         print(response)
         return "Error"
 
-#Generate the third party secrets report and report to security hub
-def third_party_report(commmiter, reporter, commit_id, repo_url, secrets):
 
+# Generate the third party secrets report and report to security hub
+def third_party_report(commiter, reporter, commit_id, repo_url, secrets):
     title = "[{}] Non Secrets Manager Secrets Report".format(commit_id)
 
     desc = "Commited by {}, Reported by {}, Repo = {}{}".format(commiter, reporter, repo_url, commit_id)
@@ -94,15 +124,7 @@ def third_party_report(commmiter, reporter, commit_id, repo_url, secrets):
 
     desc = desc[:-1]
 
-    report_secrets_finding(title, desc)
+    status = report_secrets_finding(title, desc)
+    return status
 
-
-commit_id = "b8a68fd01e7ee3870a5a76190cf3dd286ecb9d13"
-commiter = "wontonz-1"
-reporter = "reviewman-1"
-repo_url = "/COMP9447-Team-1-21t3/Demo_Repo/commit/"
-secrets = ["Line 10 app.py (Rapid API Key)", "Line 29 app.py (Password)"]
-
-
-third_party_report(commiter, reporter, commit_id, repo_url, secrets)
 
