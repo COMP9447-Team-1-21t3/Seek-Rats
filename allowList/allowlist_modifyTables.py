@@ -377,4 +377,4 @@ def delete_table(org_id, dynamodb=None):
 	table_name = f'{tablename_prefix}_{org_id}'
 
 	table = dynamodb.Table(table_name)
-	table.delete
+	table.delete()
