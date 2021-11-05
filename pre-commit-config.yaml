@@ -3,7 +3,7 @@ repos:
     hooks:
     -   id: git-leaks
         name: gitleak_checker
-        entry: python3 gitleak_checker.py
+        entry: python3 gitleaks_checker.py
         language: python
 
 # repos:
