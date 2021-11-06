@@ -55,6 +55,8 @@ paths:
           description: The organization id was not valid
         '401':
           description: The repo id was not correct
+        '409':
+          description: Bad key
 
   /allowlist/add_term/{org_id}/{repo_id}:
     post:
@@ -87,6 +89,8 @@ paths:
           description: The repo id was not correct
         '402':
           description: The given term was already whitelisted
+        '409':
+          description: Key error
 
   /allowlist/add_terms/{org_id}/{repo_id}:
     post:
@@ -118,6 +122,8 @@ paths:
           description: The organization id was not valid
         '401':
           description: The repo id was not correct
+        '409':
+          description: Bad Key
   
   /allowlist/add_terms_with_info/{org_id}/{repo_id}:
     post:
@@ -181,3 +187,5 @@ paths:
           description: The repo id was not correct
         '402':
           description: The given term is not whitelisted
+        '409':
+          description: Bad Key
