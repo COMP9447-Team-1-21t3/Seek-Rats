@@ -1,25 +1,26 @@
+import allowlist_modifyTables
+from tests_helpers import gen_random_strings
 
+org_id = "123456"
 
-def test_create_org_table():
-    # TODO
-    assert False
+@pytest.fixture
+def test_create_table(db_resource):
+    allowlist_modifyTables.create_organization_table(org_id, db_resource)
+    yield
 
-def test_insert_term():
-    # TODO
-    assert False
+def integration_test():
+    
 
-def test_insert_terms():
-    # TODO
-    assert False
-
-def test_delete_term():
-    # TODO
-    assert False
-
-def test_delete_repo():
-    # TODO
-    assert False
-
-def test_delete_table():
-    # TODO
-    assert False
+    """
+    Functions to test:
+        allowlist_modifyTables.create_organization_table()
+        allowlist_modifyTables.read_repo()
+        allowlist_modifyTables.read_repo_with_info()
+        allowlist_modifyTables.insert_new_term()
+        allowlist_modifyTables.insert_new_terms()
+        allowlist_modifyTables.insert_new_terms_with_info()
+        allowlist_modifyTables.delete_term()
+        allowlist_modifyTables.delete_repo()
+        allowlist_modifyTables.delete_table()
+    """
+    allowlist_modifyTables.create_organization_table()

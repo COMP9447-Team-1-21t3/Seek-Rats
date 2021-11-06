@@ -3,12 +3,10 @@ import string
 import random
 
 # List tables fetched from dynamo_db
-def list_table_names(dynamodb=None):
-	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
+def list_table_names(dynamodb):
 	t_list = list(
 		dynamodb.tables.filter(
-    		ExclusiveStartTableName='organization_',
-			Limit = 100
+    		ExclusiveStartTableName='organization_'
 		)
 	)
 	return [x.name for x in t_list]

@@ -105,24 +105,12 @@ paths:
           schema:
             type: integer
         - name: terms
-          in: header
+          in: requestBody
           required: true
           schema:
             type: array
             items:
-              oneOf:
-                - type: string
-                - type: object
-                  properties:
-                    term:
-                      type: string
-                    info:
-                      oneOf:
-                        - type: array
-                          items:
-                            type: string 
-                        - type: object
-                          additionalProperties: true
+              type: string
       responses:
         '200':
           description: OK
@@ -131,6 +119,37 @@ paths:
         '401':
           description: The repo id was not correct
   
+  /allowlist/add_terms_with_info/{org_id}/{repo_id}:
+    post:
+      summary: TODO
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          description: The ID of the organization to access
+          schema:
+            type: integer
+        - name: repo_id
+          in: path
+          required: true
+          description: The ID of the repository you are trying to access the whitelist for
+          schema:
+            type: integer
+        - name: terms
+          in: requestBody
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                term:
+                  type: string
+                info:
+                  type: object
+                  additionalProperties: true
+
+
   /allowlist/remove_term/{org_id}/{repo_id}:
     post:
       summary: TODO
