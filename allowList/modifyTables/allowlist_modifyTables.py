@@ -20,6 +20,7 @@ from modifyTables.allowlist_modifyTables_helpers import validateID
 #Global Vars
 tablename_prefix = "allowlist_organization"
 
+
 @validateID
 def create_organization_table(org_id, dynamodb=None):
 	"""
@@ -97,6 +98,7 @@ def create_organization_table(org_id, dynamodb=None):
 	else:
 		return True
 
+
 @validateID
 def setup_new_repo(org_id, repo_id, dynamodb=None):
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
@@ -125,6 +127,7 @@ def setup_new_repo(org_id, repo_id, dynamodb=None):
 	response = table.put_item(Item=item)
 
 	return response['ResponseMetadata']['HTTPStatusCode'] == 200
+
 
 @validateID
 def read_repo(org_id, repo_id, dynamodb=None):
@@ -175,6 +178,7 @@ def read_repo(org_id, repo_id, dynamodb=None):
 
 	return to_return
 
+
 @validateID
 def read_repo_with_info(org_id, repo_id, dynamodb=None):
 	"""
@@ -224,6 +228,7 @@ def read_repo_with_info(org_id, repo_id, dynamodb=None):
 
 	return to_return
 
+
 @validateID
 def insert_new_term(org_id, repo_id, new_term, other_info=None, dynamodb=None):
 	"""
@@ -268,6 +273,7 @@ def insert_new_term(org_id, repo_id, new_term, other_info=None, dynamodb=None):
 
 	return response
 
+
 @validateID
 def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 	"""
@@ -310,6 +316,7 @@ def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 			batch.put_item(Item = content)
 	
 	return True
+
 
 @validateID
 def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
@@ -355,6 +362,7 @@ def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
 			}
 			batch.put_item(Item = content)
 	return True
+
 
 @validateID
 def delete_term(org_id, repo_id, term, dynamodb=None):
@@ -404,6 +412,7 @@ def delete_term(org_id, repo_id, term, dynamodb=None):
 	else:
 		return response
 
+
 @validateID
 def delete_repo(org_id, repo_id, dynamodb=None):
 	"""
@@ -432,7 +441,7 @@ def delete_repo(org_id, repo_id, dynamodb=None):
 
 	if not len(response['Items']):
 		raise ValueError('ValueError: Repo has not been initialized')
-	
+
 	deleted_items += len(response['Items'])
 	with table.batch_writer() as batch:
 			for item in response['Items']:
@@ -462,6 +471,7 @@ def delete_repo(org_id, repo_id, dynamodb=None):
 		pass
 
 	return deleted_items
+
 
 @validateID
 def delete_table(org_id, dynamodb=None):

@@ -11,7 +11,7 @@ def get_list(event, context):
     org_id = event['pathParameters']['org_id']
     repo_id = event['pathParameters']['repo_id']
     query_params = event["queryStringParameters"]
-    
+
     try: 
         list_of_terms = None
         if "with_info" in query_params.keys():
@@ -67,15 +67,21 @@ def add_term(event, context):
             'description': "OK"
         }
     except Exception as e:
-        # TODO
-        return {
-            'statusCode': 400,
-            'description': "The organization id was not valid"
-        }
-        return {
-            'statusCode': 401,
-            'description': "The repo id was not correct"
-        }
+        if str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
+            return {
+                'statusCode': 400,
+                'description': "The organization id was not valid"
+            }
+        elif str(e)=="ValueError: Repo has not been initialized":
+            return {
+                'statusCode': 401,
+                'description': "The repo id was not correct"
+            }
+        else:
+            return {
+                'statusCode': 404,
+                'description': "An unexpected error occurred"
+            }
 
 
 # /allowlist/add_terms/{org_id}/{repo_id}:
@@ -100,15 +106,26 @@ def add_terms(event, context):
             'description': "OK"
         }
     except Exception as e:
-        #TODO
-        return {
-            'statusCode': 400,
-            'description': "The organization id was not valid"
-        }
-        return {
-            'statusCode': 401,
-            'description': "The repo id was not correct"
-        }
+        if str(e)=="An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates":
+            return {
+                'statusCode': 403,
+                'description': "Provided list of item keys contains duplicates"
+            }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
+            return {
+                'statusCode': 400,
+                'description': "The organization id was not valid"
+            }
+        elif str(e)=="ValueError: Repo has not been initialized":
+            return {
+                'statusCode': 401,
+                'description': "The repo id was not correct"
+            }
+        else:
+            return {
+                'statusCode': 404,
+                'description': "An unexpected error occurred"
+            }
 
 
 # /allowlist/add_terms_with_info/{org_id}/{repo_id}:
@@ -134,20 +151,26 @@ def add_terms_with_info(event, context):
             'description': "OK"
         }
     except Exception as e:
-        #TODO
-        return {
-            'statusCode': 400,
-            'description': "The organization id was not valid"
-        }
-        return {
-            'statusCode': 401,
-            'description': "The repo id was not correct"
-        }
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }
+        if str(e)=="An error occurred (ValidationException) when calling the BatchWriteItem operation: Provided list of item keys contains duplicates":
+            return {
+                'statusCode': 403,
+                'description': "Provided list of item keys contains duplicates"
+            }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
+            return {
+                'statusCode': 400,
+                'description': "The organization id was not valid"
+            }
+        elif str(e)=="ValueError: Repo has not been initialized":
+            return {
+                'statusCode': 401,
+                'description': "The repo id was not correct"
+            }
+        else:
+            return {
+                'statusCode': 404,
+                'description': "An unexpected error occurred"
+            }
 
 
 # /allowlist/remove_term/{org_id}/{repo_id}:
@@ -172,12 +195,18 @@ def remove_term(event, context):
             'description': "OK"
         }
     except Exception as e:
-        # TODO
-        return {
-            'statusCode': 400,
-            'description': "The organization id was not valid"
-        }
-        return {
-            'statusCode': 401,
-            'description': "The repo id was not correct"
-        }
+        if str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
+            return {
+                'statusCode': 400,
+                'description': "The organization id was not valid"
+            }
+        elif str(e)=="ValueError: Repo has not been initialized":
+            return {
+                'statusCode': 401,
+                'description': "The repo id was not correct"
+            }
+        else:
+            return {
+                'statusCode': 404,
+                'description': "An unexpected error occurred"
+            }
