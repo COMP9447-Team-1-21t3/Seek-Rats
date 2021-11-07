@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 import time
 
 # Internal Imports
-from allowlist_modifyTables_helpers import validateID
+from modifyTables.allowlist_modifyTables_helpers import validateID
 
 #Global Vars
 tablename_prefix = "allowlist_organization"

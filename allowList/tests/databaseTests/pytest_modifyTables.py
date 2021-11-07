@@ -1,4 +1,4 @@
-from .. import allowlist_modifyTables
+from modifyTables import allowlist_modifyTables
 from tests_helpers import gen_random_strings
 
 """

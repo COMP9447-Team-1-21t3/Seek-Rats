@@ -2,10 +2,9 @@
 import boto3
 import json
 import os
-import allowlist_modifyTables
+from modifyTables import allowlist_modifyTables
 
-aws_region = os.environ['AWS_REGION']
-dynamodb = boto3.resource('dynamodb', region=aws_region)
+dynamodb = boto3.resource('dynamodb')
 
 # /allowlist/get_list/{org_id}/{repo_id}:
 def get_list(event, context):
@@ -40,7 +39,7 @@ def get_list(event, context):
             'statusCode': 409,
             'description': "Bad Key"
         }
-        
+
 
 
 # /allowlist/add_term/{org_id}/{repo_id}:
@@ -78,6 +77,7 @@ def add_term(event, context):
             'description': "The repo id was not correct"
         }
 
+
 # /allowlist/add_terms/{org_id}/{repo_id}:
 def add_terms(event, context):
     # org_id, repo_id, new_terms
@@ -109,6 +109,7 @@ def add_terms(event, context):
             'statusCode': 401,
             'description': "The repo id was not correct"
         }
+
 
 # /allowlist/add_terms_with_info/{org_id}/{repo_id}:
 def add_terms_with_info(event, context):
@@ -147,6 +148,7 @@ def add_terms_with_info(event, context):
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
     }
+
 
 # /allowlist/remove_term/{org_id}/{repo_id}:
 def remove_term(event, context):
