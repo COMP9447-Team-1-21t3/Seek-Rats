@@ -36,6 +36,11 @@ def get_list(event, context):
                 'statusCode': 401,
                 'description': "The repo id was not correct"
             }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
+            return {
+                'statusCode': 410,
+                'description': "An unknown error occurred on DynamoDB. Please try again later"
+            }
         else:
             return {
                 'statusCode': 409,
@@ -76,6 +81,11 @@ def add_term(event, context):
             return {
                 'statusCode': 401,
                 'description': "The repo id was not correct"
+            }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
+            return {
+                'statusCode': 410,
+                'description': "An unknown error occurred on DynamoDB. Please try again later"
             }
         else:
             return {
@@ -120,6 +130,11 @@ def add_terms(event, context):
             return {
                 'statusCode': 401,
                 'description': "The repo id was not correct"
+            }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
+            return {
+                'statusCode': 410,
+                'description': "An unknown error occurred on DynamoDB. Please try again later"
             }
         else:
             return {
@@ -166,6 +181,11 @@ def add_terms_with_info(event, context):
                 'statusCode': 400,
                 'description': "The organization id was not valid"
             }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
+            return {
+                'statusCode': 410,
+                'description': "An unknown error occurred on DynamoDB. Please try again later"
+            }
         elif str(e)=="ValueError: Repo has not been initialized":
             return {
                 'statusCode': 401,
@@ -209,6 +229,11 @@ def remove_term(event, context):
             return {
                 'statusCode': 401,
                 'description': "The repo id was not correct"
+            }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
+            return {
+                'statusCode': 410,
+                'description': "An unknown error occurred on DynamoDB. Please try again later"
             }
         else:
             return {
