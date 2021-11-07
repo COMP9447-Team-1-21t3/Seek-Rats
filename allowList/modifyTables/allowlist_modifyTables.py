@@ -349,10 +349,12 @@ def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
 	if not len(response['Items']):
 		raise ValueError('ValueError: Repo has not been initialized')
 
+	for term in new_terms:
+			if 'term' not in term.keys() or 'info' not in term.keys():
+				raise ValueError ("ValueError: new_terms must be a list of dicts with the keys 'term' and 'info'")
+
 	with table.batch_writer() as batch:
 		for term in new_terms:
-			if 'term' not in term.keys() or 'info' not in term.keys():
-				raise ValueError ("new_terms must be a list of dicts with the keys 'term' and 'info'")
 			creationTime = int(time.time())
 			content = {
 				'repo_id': repo_id,

@@ -156,6 +156,11 @@ def add_terms_with_info(event, context):
                 'statusCode': 403,
                 'description': "Provided list of item keys contains duplicates"
             }
+        elif str(e)=="ValueError: new_terms must be a list of dicts with the keys 'term' and 'info'":
+            return {
+                'statusCode': 403,
+                'description': "Provided list must be a list of dicts with the keys 'term' and 'info'"
+            }
         elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
             return {
                 'statusCode': 400,
