@@ -48,9 +48,8 @@ paths:
                             term:
                               type: string
                             info:
-                              type: array
-                              items:
-                                type: string  
+                              type: object
+                              additionalProperties: true
         '400':
           description: The organization id was not valid
         '401':

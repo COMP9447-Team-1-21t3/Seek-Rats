@@ -26,20 +26,21 @@ def get_list(event, context):
             'body': json.dumps(list_of_terms)
         }
     except Exception as e:
-        # TODO
-        return {
-            'statusCode': 400,
-            'description': "The organization id was not valid"
-        }
-        return {
-            'statusCode': 401,
-            'description': "The repo id was not correct"
-        }
-        return {
-            'statusCode': 409,
-            'description': "Bad Key"
-        }
-
+        if str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
+            return {
+                'statusCode': 400,
+                'description': "The organization id was not found"
+            }
+        elif str(e)=="ValueError: Repo has not been initialized":
+            return {
+                'statusCode': 401,
+                'description': "The repo id was not correct"
+            }
+        else:
+            return {
+                'statusCode': 409,
+                'description': "Bad Key"
+            }
 
 
 # /allowlist/add_term/{org_id}/{repo_id}:
@@ -67,7 +68,6 @@ def add_term(event, context):
         }
     except Exception as e:
         # TODO
-
         return {
             'statusCode': 400,
             'description': "The organization id was not valid"
