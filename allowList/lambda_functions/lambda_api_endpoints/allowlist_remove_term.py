@@ -6,14 +6,14 @@ from modifyTables import allowlist_modifyTables
 dynamodb = boto3.resource('dynamodb')
 
 # /allowlist/remove_term/{org_id}/{repo_id}:
-def remove_term(event, context):
+def lambda_handler(event, context):
     #TODO
-    org_id = event['pathParameters']['org_id']
-    repo_id = event['pathParameters']['repo_id']
-    query_params = event["queryStringParameters"]
+    org_id = event['org_id']
+    repo_id = event['repo_id']
+    term = None
 
     try:
-        term = query_params["terms"]
+        term = event["term"]
     except KeyError:
         return {
             'statusCode': 409,

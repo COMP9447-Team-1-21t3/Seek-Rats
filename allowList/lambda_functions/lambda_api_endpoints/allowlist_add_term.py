@@ -6,16 +6,15 @@ from modifyTables import allowlist_modifyTables
 dynamodb = boto3.resource('dynamodb')
 
 # /allowlist/add_term/{org_id}/{repo_id}:
-def add_term(event, context):
+def lambda_handler(event, context):
     # org_id, repo_id, new_terms
     # TODO
-    org_id = event['pathParameters']['org_id']
-    repo_id = event['pathParameters']['repo_id']
-    query_params = event["queryStringParameters"]
+    org_id = event['org_id']
+    repo_id = event['repo_id']
     new_term = None
 
     try:
-        new_term = query_params["term"]
+        new_term = event["term"]
     except KeyError:
         return {
             'statusCode': 409,

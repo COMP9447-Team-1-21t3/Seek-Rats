@@ -7,15 +7,15 @@ dynamodb = boto3.resource('dynamodb')
 
 
 # /allowlist/add_terms_with_info/{org_id}/{repo_id}:
-def add_terms_with_info(event, context):
+def lambda_handler(event, context):
     # org_id, repo_id, new_terms
     # TODO
-    org_id = event['pathParameters']['org_id']
-    repo_id = event['pathParameters']['repo_id']
-    query_params = event["queryStringParameters"]
+    org_id = event['org_id']
+    repo_id = event['repo_id']
+    new_terms = None
 
     try:
-        new_terms = query_params["terms"]
+        new_terms = event["terms"]
     except KeyError:
         return {
             'statusCode': 409,

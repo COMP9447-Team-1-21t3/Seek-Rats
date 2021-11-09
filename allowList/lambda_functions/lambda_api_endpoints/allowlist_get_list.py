@@ -7,14 +7,13 @@ dynamodb = boto3.resource('dynamodb')
 
 
 # /allowlist/get_list/{org_id}/{repo_id}:
-def get_list(event, context):
+def lambda_handler(event, context):
     org_id = event['pathParameters']['org_id']
     repo_id = event['pathParameters']['repo_id']
-    query_params = event["queryStringParameters"]
 
     try: 
         list_of_terms = None
-        if "with_info" in query_params.keys():
+        if "with_info" in event.keys():
             if query_params["with_info"]:
                 list_of_terms = allowlist_modifyTables.read_repo_with_info(org_id, repo_id, dynamodb=dynamodb)
         if list_of_terms == None:
