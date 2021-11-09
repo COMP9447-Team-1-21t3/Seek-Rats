@@ -446,12 +446,12 @@ def delete_repo(org_id, repo_id, dynamodb=None):
 
 	deleted_items += len(response['Items'])
 	with table.batch_writer() as batch:
-			for item in response['Items']:
-				content = {
-					'repo_id': repo_id,
-					'whitelist_term': item['whitelist_term']
-				}
-				batch.delete_item(Key = content)
+		for item in response['Items']:
+			content = {
+				'repo_id': repo_id,
+				'whitelist_term': item['whitelist_term']
+			}
+			batch.delete_item(Key = content)
 	
 	try:
 		while response['LastEvaluatedKey']:

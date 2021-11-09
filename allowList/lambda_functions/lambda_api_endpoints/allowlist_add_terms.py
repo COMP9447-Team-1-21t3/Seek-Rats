@@ -8,8 +8,8 @@ dynamodb = boto3.resource('dynamodb')
 # /allowlist/add_terms/{org_id}/{repo_id}:
 def lambda_handler(event, context):
     # org_id, repo_id, new_terms
-    org_id = event['pathParameters']['org_id']
-    repo_id = event['pathParameters']['repo_id']
+    org_id = event['org_id']
+    repo_id = event['repo_id']
     new_terms = None
 
     try:
