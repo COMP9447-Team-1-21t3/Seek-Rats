@@ -12,10 +12,11 @@ def lambda_handler(event, context):
     # TODO
     org_id = event['org_id']
     repo_id = event['repo_id']
+    body = event['body']
     new_terms = None
 
     try:
-        new_terms = event["terms"]
+        new_terms = body["terms"]
     except KeyError:
         return {
             'statusCode': 409,

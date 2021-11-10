@@ -49,7 +49,6 @@ paths:
                               type: string
                             info:
                               type: object
-                              additionalProperties: true
         '400':
           description: The organization id was not valid
         '401':
@@ -107,13 +106,16 @@ paths:
           description: The ID of the repository you are trying to access the whitelist for
           schema:
             type: integer
-        - name: terms
+        - name: body
           in: requestBody
           required: true
           schema:
-            type: array
-            items:
-              type: string
+            type: object
+            properties:
+              terms:
+                type: array
+                items:
+                  type: string
       responses:
         '200':
           description: OK
@@ -142,19 +144,32 @@ paths:
           description: The ID of the repository you are trying to access the whitelist for
           schema:
             type: integer
-        - name: terms
+        - name: body
           in: requestBody
           required: true
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                term:
-                  type: string
-                info:
+            type: object
+            properties:
+              terms:
+                type: array
+                items:
                   type: object
-                  additionalProperties: true
+                  properties:
+                    term:
+                      type: string
+                    info:
+                      type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: The organization id was not valid
+        '401':
+          description: The repo id was not correct
+        '403':
+          description: Provided list of item keys contains duplicates
+        '409':
+          description: Bad Key
 
 
   /allowlist/remove_term/{org_id}/{repo_id}:
