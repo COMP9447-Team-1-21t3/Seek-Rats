@@ -1,33 +1,75 @@
 
+import boto3
 import json
-import requests
+from urllib.parse import urlparse
+from generateToken.gitapp_generateToken import get_ids
 # "www.github.com/{ORG}/{REPO}"
 
-github_API_url = "www.api.github.com/repos"
-OAUTH_TOKEN = "temps"
+dynamodb = boto3.resource('dynamodb')
+from modifyTables import allowlist_modifyTables
 
 def lambda_handler(event, context):
     url = event['url']
     with_info = event['with_info']
 
-    split_url = url.split("/")
-    if len(split_url) != 3 or  "github.com" not in split_url[0]:
+    path = urlparse('http://www.example.com/hithere/something/else').path
+    netloc = urlparse('http://www.example.com/hithere/something/else').netloc
+
+    split_path = path.split("/")
+    if (len(split_path) != 3 and len(split_url) != 4) or "github.com" not in netloc:
         return {
             'statusCode': 402,
             'description': "Invalid URL"
         }
     
-    org_name = split_url[1].strip()
-    repo_name = split_url[2].strip()
-    
-    request_url = f"{github_API_url}/{org_name}/{repo_name}"
-    response = requests.get(request_url, headers={"Authorization": f"token {OAUTH_TOKEN}"})
+    org_name = split_path[1].strip()
+    repo_name = split_path[2].strip()
+    ids = None
 
-    if response.status_code != 200:
+    try:
+        ids = get_ids(org_name, repo_name)
+    except Exception as e:
         return {
             'statusCode': 402,
             'description': "Invalid URL"
         }
 
-    res_dict = response.json()
+    org_id = ids['org_id']
+    repo_id = ids['repo_id']
     
+    # NGL, i think this is easier then invoking the other lambda function
+
+    try: 
+        list_of_terms = None
+        if "with_info" in event.keys():
+            if event["with_info"]:
+                list_of_terms = allowlist_modifyTables.read_repo_with_info(org_id, repo_id, dynamodb=dynamodb)
+        if list_of_terms == None:
+            list_of_terms = allowlist_modifyTables.read_repo(org_id, repo_id, dynamodb=dynamodb)
+        
+        return {
+            'statusCode': 200,
+            'description': "OK",
+            'body': json.dumps(list_of_terms)
+        }
+    except Exception as e:
+        if str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
+            return {
+                'statusCode': 400,
+                'description': "The organization name was not valid"
+            }
+        elif str(e)=="ValueError: Repo has not been initialized":
+            return {
+                'statusCode': 401,
+                'description': "The repo name was not correct"
+            }
+        elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
+            return {
+                'statusCode': 410,
+                'description': "An unknown error occurred on DynamoDB. Please try again later"
+            }
+        else:
+            return {
+                'statusCode': 409,
+                'description': "Bad Key"
+            }

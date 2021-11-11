@@ -52,3 +52,17 @@ def generate_token(owner, repo):
 	response = requests.post(acc_tok_url, headers=headers)
 	token = response.json()['token']
 	return token
+
+def get_ids(owner, repo):
+	token = generate_token(owner, repo)
+	response = requests.get(
+        "https://api.github.com/installation/repositories",
+        headers=generate_token_header(token)
+    )
+	if int(response.status_code) >= 300 :
+		raise ValueError("Application does not have access to repo")
+	to_return = {
+		'repo_id':response.json()['repositories'][0]['id'],
+		'org_id':response.json()['repositories'][0]['owner']['id']
+	}
+	return to_return
