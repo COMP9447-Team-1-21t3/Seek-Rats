@@ -11,8 +11,9 @@ def lambda_handler(event, context):
     url = event['url']
     with_info = event['with_info']
 
-    path = urlparse('http://www.example.com/hithere/something/else').path
-    netloc = urlparse('http://www.example.com/hithere/something/else').netloc
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+    netloc = parsed_url.netloc
 
     split_path = path.split("/")
     if (len(split_path) != 3 and len(split_url) != 4) or "github" not in netloc:
