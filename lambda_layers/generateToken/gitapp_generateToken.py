@@ -52,20 +52,3 @@ def generate_token(owner, repo):
 	response = requests.post(acc_tok_url, headers=headers)
 	token = response.json()['token']
 	return token
-
-if __name__=="__main__":
-	#"https://api.github.com/app",
-	#"https://api.github.com/installation/repositories",
-	#"https://api.github.com/app/installations/20623405/access_tokens",
-	token = generate_token("COMP9447-Team-1-21t3", "Seek-Rats")
-	print (
-		f"token = {token}"
-	)
-
-	response = requests.get(
-		"https://api.github.com/installation/repositories",
-		headers=generate_token_header(token)
-	)
-	print (f"Status Code = {response.status_code}")
-	print(f"repo_id = {response.json()['repositories'][0]['id']}")
-	print(f"org_id = {response.json()['repositories'][0]['owner']['id']}")
