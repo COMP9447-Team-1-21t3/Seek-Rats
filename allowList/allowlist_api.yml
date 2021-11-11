@@ -44,9 +44,9 @@ paths:
                             info:
                               type: object
         '400':
-          description: The organization id was not valid
+          description: The organization name was not valid
         '401':
-          description: The repo id was not correct
+          description: The repo name was not correct
         '402':
           description: Invalid URL
         '409':
