@@ -3,10 +3,9 @@ import boto3
 import json
 from urllib.parse import urlparse
 from generateToken.gitapp_generateToken import get_ids
-# "www.github.com/{ORG}/{REPO}"
+from modifyTables import allowlist_modifyTables
 
 dynamodb = boto3.resource('dynamodb')
-from modifyTables import allowlist_modifyTables
 
 def lambda_handler(event, context):
     url = event['url']
@@ -16,7 +15,7 @@ def lambda_handler(event, context):
     netloc = urlparse('http://www.example.com/hithere/something/else').netloc
 
     split_path = path.split("/")
-    if (len(split_path) != 3 and len(split_url) != 4) or "github.com" not in netloc:
+    if (len(split_path) != 3 and len(split_url) != 4) or "github" not in netloc:
         return {
             'statusCode': 402,
             'description': "Invalid URL"
