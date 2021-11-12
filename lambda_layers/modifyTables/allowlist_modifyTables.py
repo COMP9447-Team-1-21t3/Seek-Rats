@@ -10,14 +10,16 @@ Last Modified by : James Miller (z5257531)
 # External Imports
 import boto3
 from boto3.dynamodb.conditions import Key
+import botocore
 from botocore.exceptions import ClientError
 import time
 
 # Internal Imports
-from allowlist_modifyTables_helpers import validateID
+from modifyTables.allowlist_modifyTables_helpers import validateID
 
 #Global Vars
 tablename_prefix = "allowlist_organization"
+
 
 @validateID
 def create_organization_table(org_id, dynamodb=None):
@@ -30,7 +32,7 @@ def create_organization_table(org_id, dynamodb=None):
 		dynamodb (dynamodb service resource, optional): DynamoDB connection. Defaults to None, which will uses the localhost:8000 instead of any region
 
 	Raises:
-		ValueError: if the repo_id is None, or a repo already exists for the given ID
+		ValueError: if the org_id is None, or a table already exists for the given ID
 
 	Returns:
 		True: If a new table is successfully created the function will return true
@@ -38,57 +40,94 @@ def create_organization_table(org_id, dynamodb=None):
 	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
 
 	table_name = f'{tablename_prefix}_{org_id}'
-	
-	dynamodb.create_table(
-		TableName=table_name,
-		KeySchema=[
-			{
-				'AttributeName': 'repo_id',
-				'KeyType': 'HASH' # Partition key
-			}, 
-			{
-				'AttributeName': 'whitelist_term',
-				'KeyType': 'RANGE'  # Sort key
-			}
-		],
-		LocalSecondaryIndexes=[
-			{
-				'IndexName':"LatestAdditions",
-				'KeySchema':[
-					{
-						'AttributeName': 'repo_id',
-						'KeyType': 'HASH' # Partition key
-					}, 
-					{
-						'AttributeName': 'time_added',
-						'KeyType': 'RANGE'  # Sort key
-					}
-				],
-				'Projection':{
-					'ProjectionType':'ALL'
+	try:
+		dynamodb.create_table(
+			TableName=table_name,
+			KeySchema=[
+				{
+					'AttributeName': 'repo_id',
+					'KeyType': 'HASH' # Partition key
+				}, 
+				{
+					'AttributeName': 'whitelist_term',
+					'KeyType': 'RANGE'  # Sort key
 				}
+			],
+			LocalSecondaryIndexes=[
+				{
+					'IndexName':"LatestAdditions",
+					'KeySchema':[
+						{
+							'AttributeName': 'repo_id',
+							'KeyType': 'HASH' # Partition key
+						}, 
+						{
+							'AttributeName': 'time_added',
+							'KeyType': 'RANGE'  # Sort key
+						}
+					],
+					'Projection':{
+						'ProjectionType':'ALL'
+					}
+				}
+			],
+			AttributeDefinitions=[
+				{
+					'AttributeName': 'repo_id',
+					'AttributeType': 'S' # string
+				}, 
+				{
+					'AttributeName': 'whitelist_term',
+					'AttributeType': 'S' # string
+				},
+				{
+					'AttributeName': 'time_added',
+					'AttributeType': 'N' # Epoch Time
+				}
+			],
+			ProvisionedThroughput={
+				'ReadCapacityUnits': 5,
+				'WriteCapacityUnits': 5
 			}
-		],
-		AttributeDefinitions=[
-			{
-				'AttributeName': 'repo_id',
-				'AttributeType': 'S' # string
-			}, 
-			{
-				'AttributeName': 'whitelist_term',
-				'AttributeType': 'S' # string
-			},
-			{
-				'AttributeName': 'time_added',
-				'AttributeType': 'N' # Epoch Time
-			}
-		],
-		ProvisionedThroughput={
-			'ReadCapacityUnits': 5,
-			'WriteCapacityUnits': 5
-		}
-	)
-	return True
+		)
+	except Exception as e:
+		if str(e) == "An error occurred (ResourceInUseException) when calling the CreateTable operation: Cannot create preexisting table":
+			return False
+		else:
+			raise e
+	else:
+		return True
+
+
+@validateID
+def setup_new_repo(org_id, repo_id, dynamodb=None):
+	dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000") if not dynamodb else dynamodb
+	table_name = f'{tablename_prefix}_{org_id}'
+	repo_id = f'repo_{repo_id}'
+
+	query_params = {
+		'KeyConditionExpression':  Key('repo_id').eq(repo_id), 
+		'ProjectionExpression': "whitelist_term",
+		'ConsistentRead': True
+	}
+	table = dynamodb.Table(table_name)
+	response = table.query( **query_params)
+
+	if len(response['Items']):
+		raise ValueError("Repo with given ID already initialized")
+
+	creationTime = int(time.time())
+	item = {
+		'repo_id' : repo_id,
+		'whitelist_term': "_initialization_",
+		'time_added': creationTime,
+		'info': {}
+	}
+	table = dynamodb.Table(table_name)
+	response = table.put_item(Item=item)
+
+	return response['ResponseMetadata']['HTTPStatusCode'] == 200
+
 
 @validateID
 def read_repo(org_id, repo_id, dynamodb=None):
@@ -132,7 +171,13 @@ def read_repo(org_id, repo_id, dynamodb=None):
 		# There is a possability the first pass won't leave any terms left - this is to catch that exclusive case
 		pass
 
+	if not to_return:
+		raise ValueError('ValueError: Repo has not been initialized')
+
+	to_return.remove('_initialization_')
+
 	return to_return
+
 
 @validateID
 def read_repo_with_info(org_id, repo_id, dynamodb=None):
@@ -170,11 +215,16 @@ def read_repo_with_info(org_id, repo_id, dynamodb=None):
 				ExclusiveStartKey = response['LastEvaluatedKey']
 			)
 			for item in response['Items']:
-				to_return.append(item['whitelist_term'])
+				to_return.append({'term':item['whitelist_term'], 'info':item['info']})
 			
 	except KeyError as e:
 		# There is a possability the first pass won't leave any terms left - this is to catch that exclusive case
 		pass
+
+	if not to_return:
+		raise ValueError('ValueError: Repo has not been initialized')
+	
+	to_return.remove({'term':'_initialization_', 'info':{}})
 
 	return to_return
 
@@ -200,21 +250,36 @@ def insert_new_term(org_id, repo_id, new_term, other_info=None, dynamodb=None):
 	repo_id = f'repo_{repo_id}'
 	creationTime = int(time.time())
 
+	table = dynamodb.Table(table_name)
+
+	query_params = {
+		'KeyConditionExpression':  Key('repo_id').eq(repo_id), 
+		'ProjectionExpression': "whitelist_term",
+		'ConsistentRead': True
+	}
+	
+	response = table.query( **query_params)
+
+	if not len(response['Items']):
+		raise ValueError('ValueError: Repo has not been initialized')
+
 	item = {
 		'repo_id' : repo_id,
 		'whitelist_term': new_term,
 		'time_added': creationTime,
 		'info': other_info
 	}
-	table = dynamodb.Table(table_name)
 	response = table.put_item(Item=item)
 
 	return response
+
 
 @validateID
 def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 	"""
 	Same as insert_new_term, except for multiple iteratable terms
+
+	Throws: Resource in use Exception
 
 	Args:
 		org_id (int/str): id of the organization to add term to
@@ -228,6 +293,17 @@ def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 
 	table = dynamodb.Table(table_name)
 
+	query_params = {
+		'KeyConditionExpression':  Key('repo_id').eq(repo_id), 
+		'ProjectionExpression': "whitelist_term",
+		'ConsistentRead': True
+	}
+	
+	response = table.query( **query_params)
+
+	if not len(response['Items']):
+		raise ValueError('ValueError: Repo has not been initialized')
+	
 	with table.batch_writer() as batch:
 		for term in new_terms:
 			creationTime = int(time.time())
@@ -240,6 +316,7 @@ def insert_new_terms(org_id, repo_id, new_terms, dynamodb=None):
 			batch.put_item(Item = content)
 	
 	return True
+
 
 @validateID
 def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
@@ -261,10 +338,23 @@ def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
 	repo_id = f'repo_{repo_id}'
 	table = dynamodb.Table(table_name)
 
+	query_params = {
+		'KeyConditionExpression':  Key('repo_id').eq(repo_id), 
+		'ProjectionExpression': "whitelist_term",
+		'ConsistentRead': True
+	}
+	
+	response = table.query( **query_params)
+
+	if not len(response['Items']):
+		raise ValueError('ValueError: Repo has not been initialized')
+
+	for term in new_terms:
+			if 'term' not in term.keys() or 'info' not in term.keys():
+				raise ValueError ("ValueError: new_terms must be a list of dicts with the keys 'term' and 'info'")
+
 	with table.batch_writer() as batch:
 		for term in new_terms:
-			if 'term' not in term.keys() or 'info' not in term.keys():
-				raise ValueError ("new_terms must be a list of dicts with the keys 'term' and 'info'")
 			creationTime = int(time.time())
 			content = {
 				'repo_id': repo_id,
@@ -274,6 +364,7 @@ def insert_new_terms_with_info(org_id, repo_id, new_terms, dynamodb=None):
 			}
 			batch.put_item(Item = content)
 	return True
+
 
 @validateID
 def delete_term(org_id, repo_id, term, dynamodb=None):
@@ -297,6 +388,18 @@ def delete_term(org_id, repo_id, term, dynamodb=None):
 
 	try:
 		table = dynamodb.Table(table_name)
+
+		query_params = {
+			'KeyConditionExpression':  Key('repo_id').eq(repo_id), 
+			'ProjectionExpression': "whitelist_term",
+			'ConsistentRead': True
+		}
+		
+		response = table.query( **query_params)
+
+		if not len(response['Items']):
+			raise ValueError('ValueError: Repo has not been initialized')
+
 		response = table.delete_item(
 			Key = {
 				'repo_id' : repo_id,
@@ -306,8 +409,11 @@ def delete_term(org_id, repo_id, term, dynamodb=None):
 	except ClientError as e:
 		# TODO
 		raise ValueError("There was a bad paramater")
+	except ValueError as e:
+		raise e
 	else:
 		return response
+
 
 @validateID
 def delete_repo(org_id, repo_id, dynamodb=None):
@@ -334,14 +440,18 @@ def delete_repo(org_id, repo_id, dynamodb=None):
 
 	table = dynamodb.Table(table_name)
 	response = table.query( **query_params)
+
+	if not len(response['Items']):
+		raise ValueError('ValueError: Repo has not been initialized')
+
 	deleted_items += len(response['Items'])
 	with table.batch_writer() as batch:
-			for item in response['Items']:
-				content = {
-					'repo_id': repo_id,
-					'whitelist_term': item['whitelist_term']
-				}
-				batch.delete_item(Key = content)
+		for item in response['Items']:
+			content = {
+				'repo_id': repo_id,
+				'whitelist_term': item['whitelist_term']
+			}
+			batch.delete_item(Key = content)
 	
 	try:
 		while response['LastEvaluatedKey']:
@@ -363,6 +473,7 @@ def delete_repo(org_id, repo_id, dynamodb=None):
 		pass
 
 	return deleted_items
+
 
 @validateID
 def delete_table(org_id, dynamodb=None):

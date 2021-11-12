@@ -5,9 +5,57 @@ info:
   description: Access points to allowlist dynamodb
 
 paths: 
+  /allowlist/get_list/:
+    get:
+      summary: Returns a json array of all allowlist terms.  
+        If with_info is set to true it will return a list of objects with associated information, else it will just return a list of strings.
+      parameters:
+        - name: repo_url
+          in: query
+          required: true
+          description: The URL of the repo
+          schema:
+            type: string
+        - name: with_info
+          in: query
+          required: false
+          description: Should the response also contain extra information related to whitelist terms
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  repo_id:
+                    type: number
+                  whitelist:
+                    type: array
+                    items:
+                      oneOf:
+                        - type: string
+                        - type: object
+                          properties:
+                            term:
+                              type: string
+                            info:
+                              type: object
+        '400':
+          description: The organization name was not valid
+        '401':
+          description: The repo name was not correct
+        '402':
+          description: Invalid URL
+        '409':
+          description: Bad key
+
+
   /allowlist/get_list/{org_id}/{repo_id}:
     get:
-      summary: Returns a json list of all allowlist terms. 
+      summary: Returns a json array of all allowlist terms. 
         If with_info is set to true it will return a list of objects with associated information, else it will just return a list of strings.
       parameters:
         - name: org_id
@@ -48,13 +96,13 @@ paths:
                             term:
                               type: string
                             info:
-                              type: array
-                              items:
-                                type: string  
+                              type: object
         '400':
           description: The organization id was not valid
         '401':
           description: The repo id was not correct
+        '409':
+          description: Bad key
 
   /allowlist/add_term/{org_id}/{repo_id}:
     post:
@@ -87,6 +135,8 @@ paths:
           description: The repo id was not correct
         '402':
           description: The given term was already whitelisted
+        '409':
+          description: Key error
 
   /allowlist/add_terms/{org_id}/{repo_id}:
     post:
@@ -104,13 +154,16 @@ paths:
           description: The ID of the repository you are trying to access the whitelist for
           schema:
             type: integer
-        - name: terms
+        - name: body
           in: requestBody
           required: true
           schema:
-            type: array
-            items:
-              type: string
+            type: object
+            properties:
+              terms:
+                type: array
+                items:
+                  type: string
       responses:
         '200':
           description: OK
@@ -118,6 +171,10 @@ paths:
           description: The organization id was not valid
         '401':
           description: The repo id was not correct
+        '403':
+          description: Provided list of item keys contains duplicates
+        '409':
+          description: Bad Key
   
   /allowlist/add_terms_with_info/{org_id}/{repo_id}:
     post:
@@ -135,19 +192,32 @@ paths:
           description: The ID of the repository you are trying to access the whitelist for
           schema:
             type: integer
-        - name: terms
+        - name: body
           in: requestBody
           required: true
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                term:
-                  type: string
-                info:
+            type: object
+            properties:
+              terms:
+                type: array
+                items:
                   type: object
-                  additionalProperties: true
+                  properties:
+                    term:
+                      type: string
+                    info:
+                      type: object
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: The organization id was not valid
+        '401':
+          description: The repo id was not correct
+        '403':
+          description: Provided list of item keys contains duplicates
+        '409':
+          description: Bad Key
 
 
   /allowlist/remove_term/{org_id}/{repo_id}:
@@ -181,3 +251,5 @@ paths:
           description: The repo id was not correct
         '402':
           description: The given term is not whitelisted
+        '409':
+          description: Bad Key
