@@ -1,4 +1,3 @@
-cryptography
 requests
 pyjwt
 boto3

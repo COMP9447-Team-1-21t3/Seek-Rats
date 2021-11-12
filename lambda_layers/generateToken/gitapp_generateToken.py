@@ -1,7 +1,6 @@
 import jwt
 import requests
 import time
-from cryptography.hazmat.backends import default_backend
 from gitapp_generateToken_helpers import get_parameter
 
 cert_str = get_parameter("gitapp_PKey").get("Parameter").get("Value")
@@ -14,8 +13,6 @@ def generate_jwt_headers():
 	seconds= int(time.time())
 	cert_bytes= cert_str.encode()
 
-	private_key = default_backend().load_pem_private_key(cert_bytes, None)
-
 	payload = {
 		# issued at time, 60 seconds in the past to allow for clock drift
 		'iat': seconds - 60,
@@ -25,7 +22,7 @@ def generate_jwt_headers():
 		'iss': app_id
 	}
 
-	a_jwt = jwt.encode(payload, private_key, algorithm='RS256')
+	a_jwt = jwt.encode(payload, cert_bytes, algorithm='RS256')
 
 	headers = {
 		"Authorization": f"Bearer {a_jwt}", 
