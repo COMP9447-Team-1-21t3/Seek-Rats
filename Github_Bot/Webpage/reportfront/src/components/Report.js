@@ -7,9 +7,9 @@ import axios from "axios";
 
 function Report() {
 
-    const [secrets, setSecrets] = useState([{"secret":"test", "type":"Unknown Secret","location":"line 2 app.py", "code_location": "minecraft_seed = -test", "id":"1"}, 
-    {"secret":"test", "type":"API Secret","location":"line 10 app.py", "code_location": "api_key= test", "id":"2"}])
-    // const [secrets, setSecrets] = useState([])
+    // const [secrets, setSecrets] = useState([{"secret":"test", "type":"Unknown Secret","location":"line 2 app.py", "code_location": "minecraft_seed = -test", "id":"1"}, 
+    // {"secret":"test", "type":"API Secret","location":"line 10 app.py", "code_location": "api_key= test", "id":"2"}])
+    const [secrets, setSecrets] = useState([])
     const [user, setUser] = useState("9999999")
     
     const commit_id = "asdasd"
@@ -17,24 +17,24 @@ function Report() {
     const date = "asdasd"
     
 
-    // useEffect(() => {
-    //   const getData = () => {
-    //      fetch(url)
-    //       .then(r => r.text()) 
-    //       .then(async text => {
-    //         try {
-    //           let result = await axios.get(text.concat("/"));
+    useEffect(() => {
+      const getData = () => {
+         fetch(url)
+          .then(r => r.text()) 
+          .then(async text => {
+            try {
+              let result = await axios.get(text.concat("/"));
 
-    //           setSecrets(result.data);
-    //           console.log(result);
-    //           console.log(result.data);
-    //         } catch (error) {
-    //           console.log(error);
-    //         }
-    //   });
-    //   };
-    //   getData();
-    // }, []);  
+              setSecrets(result.data);
+              console.log(result);
+              console.log(result.data);
+            } catch (error) {
+              console.log(error);
+            }
+      });
+      };
+      getData();
+    }, []);  
     
 
     const sendForm = (event) => {
