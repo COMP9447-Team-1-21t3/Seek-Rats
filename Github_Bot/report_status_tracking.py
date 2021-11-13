@@ -3,29 +3,21 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
 global url
-global mode
 url = "http://localhost:8000"
-test_mode = True
 
 
+# This function deletes a table specified by name
 def delete_table(table_name, dynamodb=None):
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     table = dynamodb.Table(table_name)
     table.delete()
     print(f'{table_name} table successfully deleted')
 
 
+# This table creates the tracking table
 def create_tracking_table(dynamodb=None):
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     dynamodb.create_table(
         TableName=table_name,
         KeySchema=[
@@ -57,13 +49,10 @@ def create_tracking_table(dynamodb=None):
     return True
 
 
+# This function inserts a row into the tracking table
 def insert_tracking(reportURL, reviewerID, SHA, status=False, dynamodb=None):
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     item = {
         'reportURL': reportURL,
         'reviewerID': reviewerID,
@@ -79,11 +68,7 @@ def insert_tracking(reportURL, reviewerID, SHA, status=False, dynamodb=None):
 # This function updates the tracking status of a single record associated with a given reportURL and a reviewerID
 def update_tracking_status(reportURL, reviewerID, new_status, dynamodb=None):
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     table = dynamodb.Table(table_name)
     response = table.update_item(
         Key={
@@ -102,11 +87,7 @@ def update_tracking_status(reportURL, reviewerID, new_status, dynamodb=None):
 # This function updates all record's SHA value associated with a given reportURL
 def update_SHA(reportURL, new_SHA, dynamodb=None):
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     table = dynamodb.Table(table_name)
     # Query all records that has the given reportURL
     records = read_tracking_report(reportURL, dynamodb)
@@ -130,11 +111,7 @@ def update_SHA(reportURL, new_SHA, dynamodb=None):
 def delete_tracking_record(reportURL, dynamodb=None):
     deleted_items = 0
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     query_params = {
         'KeyConditionExpression': Key('reportURL').eq(reportURL),
         'ConsistentRead': True
@@ -158,11 +135,7 @@ def delete_tracking_record(reportURL, dynamodb=None):
 # Get all existing tracking records with the same reportURL
 def read_tracking_report(reportURL, dynamodb=None):
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
 
     to_return = []
     query_params = {
@@ -180,11 +153,7 @@ def read_tracking_report(reportURL, dynamodb=None):
 # This function fetches the status of tracking given a specific reportURL and a reviewerID
 def read_tracking_reviewer_status(reportURL, reviewerID, dynamodb=None):
     table_name = "tracking"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     table = dynamodb.Table(table_name)
     key = {
         'reportURL': reportURL,
@@ -194,13 +163,10 @@ def read_tracking_reviewer_status(reportURL, reviewerID, dynamodb=None):
     return response['Item']
 
 
+# This function creates a secret table
 def create_secret_table(dynamodb=None):
     table_name = "secret"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     dynamodb.create_table(
         TableName=table_name,
         KeySchema=[
@@ -232,17 +198,15 @@ def create_secret_table(dynamodb=None):
     return True
 
 
-def insert_secret(reportURL, secretNum, secret, status, dynamodb=None):
+# This function inserts a record in the secret table
+def insert_secret(reportURL, secretNum, secret, secret_info, status, dynamodb=None):
     table_name = "secret"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     item = {
         'reportURL': reportURL,
         'secretNum': secretNum,
         'secret': secret,
+        'secret_info': secret_info,
         'secret_status': status
     }
     table = dynamodb.Table(table_name)
@@ -254,11 +218,7 @@ def insert_secret(reportURL, secretNum, secret, status, dynamodb=None):
 # This function updates the secret status of a record associated with a given reportURL and a secretNum
 def update_secret_status(reportURL, secretNum, new_status, dynamodb=None):
     table_name = "secret"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     table = dynamodb.Table(table_name)
     response = table.update_item(
         Key={
@@ -277,11 +237,7 @@ def update_secret_status(reportURL, secretNum, new_status, dynamodb=None):
 # This function reads all secrets that are associated with a given reportURL
 def read_secret(reportURL, dynamodb=None):
     table_name = "secret"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
 
     to_return = []
     query_params = {
@@ -300,11 +256,7 @@ def read_secret(reportURL, dynamodb=None):
 def delete_secret_record(reportURL, dynamodb=None):
     deleted_items = 0
     table_name = "secret"
-    if not dynamodb:
-        if test_mode:
-            dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-        else:
-            dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+    if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
     query_params = {
         'KeyConditionExpression': Key('reportURL').eq(reportURL),
         'ConsistentRead': True
@@ -326,27 +278,4 @@ def delete_secret_record(reportURL, dynamodb=None):
 
 
 if __name__ == '__main__':
-    dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-    # dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
-
-    # create_tracking_table(dynamodb)
-    # insert_tracking('report123', 'reviewer1', '3ef81ac', status=False, dynamodb=dynamodb)
-    # insert_tracking('report123', 'reviewer2', '3ef81ac', status=True, dynamodb=dynamodb)
-    # print(read_tracking_report('report123', dynamodb))
-    # delete_tracking_record('report123', dynamodb)
-    # print(read_tracking_report('report123', dynamodb))
-    # print(read_tracking_reviewer_status('report123', 'reviewer1', dynamodb))
-    # update_tracking_status('report123', 'reviewer1', True, dynamodb)
-    # print(read_tracking_report('report123', dynamodb))
-    # update_SHA('report123', '3ef81ac', dynamodb)
-    # update_SHA('report123', '3fa21be', dynamodb)
-    # delete_table('tracking', dynamodb)
-    #
-    # create_secret_table(dynamodb)
-    # insert_secret('report123', '1', 'password 1', 'allowlist', dynamodb)
-    # insert_secret('report123', '2', 'password 2', 'security hub', dynamodb)
-    # print(read_secret('report123', dynamodb))
-    # update_secret_status('report123', '1', 'security hub', dynamodb)
-    # delete_secret_record('report123', dynamodb)
-    # print(read_secret('report123', dynamodb))
-    # delete_table('secret', dynamodb)
+    dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
