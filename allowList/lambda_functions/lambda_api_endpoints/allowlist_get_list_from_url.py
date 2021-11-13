@@ -1,7 +1,7 @@
 
 import boto3
 import json
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 from generateToken.gitapp_generateToken import get_ids
 from modifyTables import allowlist_modifyTables
 
@@ -11,6 +11,7 @@ def lambda_handler(event, context):
     url = event['url']
     with_info = event['with_info']
 
+    url = unquote(url)
     parsed_url = urlparse(url)
     path = parsed_url.path
     netloc = parsed_url.netloc
@@ -53,6 +54,7 @@ def lambda_handler(event, context):
             'body': json.dumps(list_of_terms)
         }
     except Exception as e:
+        print(str(e)) 
         if str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Cannot do operations on a non-existent table":
             return {
                 'statusCode': 400,
@@ -65,8 +67,8 @@ def lambda_handler(event, context):
             }
         elif str(e)=="An error occurred (ResourceNotFoundException) when calling the Query operation: Requested resource not found":
             return {
-                'statusCode': 410,
-                'description': "An unknown error occurred on DynamoDB. Please try again later"
+                'statusCode': 400,
+                'description': "The organization name was not valid"
             }
         else:
             return {
