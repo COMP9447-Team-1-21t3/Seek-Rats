@@ -1,23 +1,23 @@
 {
 	"name": "secretscanner",
-	"displayName": "SecretScanner",
+	"displayName": "secretscanner",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
-		"vscode": "^1.61.0"
+		"vscode": "^1.62.0"
 	},
 	"categories": [
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onCommand:secretscanner.scan"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"colors": [
 			{
-				"id": "myextension.largeNumberBackground",
-				"description": "Background decoration color for large numbers",
+				"id": "secretscanner.secretBackground",
+				"description": "Background decoration color for secrets",
 				"defaults": {
 					"dark": "#FF000055",
 					"light": "#FF000055",
@@ -26,11 +26,11 @@
 			}
 		],
 		"commands": [
-      {
-        "command": "secretscanner.scan",
-        "title": "Scan for Secrets"
-      }
-    ]
+			{
+				"command": "secretscanner.scan",
+				"title": "Scan for Secrets"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -38,10 +38,11 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
+		"postinstall": "cp src/regex.toml out/",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.61.0",
+		"@types/vscode": "^1.62.0",
 		"@types/glob": "^7.1.4",
 		"@types/mocha": "^9.0.0",
 		"@types/node": "14.x",
@@ -54,7 +55,6 @@
 		"@vscode/test-electron": "^1.6.2"
 	},
 	"dependencies": {
-		"regex-parser": "^2.2.11",
 		"toml": "^3.0.0"
 	}
 }
