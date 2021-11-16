@@ -5,6 +5,12 @@ info:
   description: Access points to allowlist dynamodb
 
 paths: 
+  /:
+    get:
+      summary: Base URL endpoint
+      responses: '200':
+        description: OK
+  
   /allowlist/get_list/:
     get:
       summary: Returns a json array of all allowlist terms.  
