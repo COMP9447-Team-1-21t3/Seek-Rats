@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     netloc = parsed_url.netloc
 
     split_path = path.split("/")
-    if (len(split_path) != 3 and len(split_url) != 4) or "github" not in netloc:
+    if (len(split_path) != 3 and len(split_path) != 4) or "github" not in netloc:
         return {
             'statusCode': 402,
             'description': "Invalid URL"
