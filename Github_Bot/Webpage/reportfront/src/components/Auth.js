@@ -1,29 +1,22 @@
-import logo from '../logo.svg';
 import '../App.css';
 import React, { useEffect, useState } from "react";
 import Report from './Report';
+import seek_logo from "../seek_rats.png";
+import github_login from "../github_img.png"
 
 function Auth() {
     const queryString = require('query-string');
-    const [repo_url, setURL] = useState("") //Get from query string
-    const [is_repo_valid, setValidCheck] = useState(false)
     const parsed = queryString.parse(window.location.search);
 
     const client_id = "bafc9bb95ef83e08ded6" //get from config
-    const redirect_uri = "http://localhost:3000" //Get it from config
-
-    if (parsed[repo_url]) {
-        setURL(repo_url);
-        setValidCheck(true);
-        console.log(repo_url);
-    }
-    
+    const redirect_uri = "http://seek-rats-site.s3-website-ap-southeast-2.amazonaws.com" //TODO: Get it from config
     var auth_url = "https://github.com/login/oauth/authorize?client_id="
     auth_url = auth_url.concat(client_id)
     auth_url = auth_url.concat("&redirect_uri=")
     auth_url = auth_url.concat(redirect_uri)
     console.log(auth_url)
 
+    // If there is a code query assume they have went through github authentication and show them report page. Auth and token will be checked on report page.
     if (parsed["code"]) {
         return (
             <div>
@@ -31,21 +24,20 @@ function Auth() {
             </div>
         )
     }
-     else {
+    else {
         return (
-            
-            <div>
-                {console.log(window.location.search)}
-                {is_repo_valid ? 
-                <a href={auth_url.concat(window.location.search)}>Login with Github</a> : <a>Need Repo Query</a>
-                }      
-                <a href={auth_url.concat(window.location.search)}>Login with Github</a>
-            </div>  
-             
-
-
-        )
+        
+        <div class="centered">
+            <div aclass="centered">
+                <img class="centered" src={seek_logo} alt="seek rats logo" width="200px" /> 
+                <h2>Code Review Report. Sign in to proceed. </h2>
+                <p>
+                    <a href={auth_url.concat(window.location.search)}>
+                    <img src={github_login}></img> </a>
+                </p>
+            </div>
+        </div>  
+    )
     }
-    
 }
 export default Auth;
