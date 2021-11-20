@@ -13,8 +13,8 @@ resource "aws_s3_bucket" "lambda_bucket" {
 data "archive_file" "skrts_report_server" {
   type = "zip"
 
-  source_dir  = "${path.module}/skrts_report_server"
-  output_path = "${path.module}/skrts_report_server.zip"
+  source_dir  = "${path.module}/../Github_Bot/skrts_report_server"
+  output_path = "${path.module}/../Github_Bot/skrts_report_server.zip"
 }
 
 resource "aws_s3_bucket_object" "seek_rats_server" {
@@ -83,7 +83,7 @@ resource "aws_apigatewayv2_stage" "lambda" {
 
 resource "local_file" "skrts_report_server_data" {
     content  = aws_apigatewayv2_stage.lambda.invoke_url
-    filename = "${path.module}/Webpage/reportfront/src/components/config.txt"
+    filename = "${path.module}/../Github_Bot/Webpage/reportfront/src/components/server_api_url.txt"
 }
 
 resource "aws_apigatewayv2_integration" "skrts_report_server" {

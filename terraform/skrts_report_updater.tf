@@ -13,8 +13,8 @@ resource "aws_s3_bucket" "lambda_bucket_updater" {
 data "archive_file" "skrts_report_updater" {
   type = "zip"
 
-  source_dir  = "${path.module}/skrts_report_updater"
-  output_path = "${path.module}/skrts_report_updater.zip"
+  source_dir  = "${path.module}/../Github_Bot/skrts_report_updater"
+  output_path = "${path.module}/../Github_Bot/skrts_report_updater.zip"
 }
 
 resource "aws_s3_bucket_object" "seek_rats_report_updater" {
@@ -32,7 +32,7 @@ resource "aws_lambda_function" "skrts_report_updater" {
   s3_bucket = aws_s3_bucket.lambda_bucket_updater.id
   s3_key    = aws_s3_bucket_object.seek_rats_report_updater.key
 
-  runtime = "python3.9"
+  runtime = "python3.8"
   handler = "report_updater.lambda_handler"
 
   source_code_hash = data.archive_file.skrts_report_updater.output_base64sha256
@@ -78,7 +78,7 @@ resource "aws_apigatewayv2_stage" "lambda_updater" {
 
 resource "local_file" "skrts_report_updater_file" {
     content  = aws_apigatewayv2_stage.lambda_updater.invoke_url
-    filename = "${path.module}/Webpage/reportfront/src/components/config2.txt"
+    filename = "${path.module}/../Github_Bot/Webpage/reportfront/src/components/update_api_url.txt"
 }
 
 resource "aws_apigatewayv2_integration" "skrts_report_updater" {
