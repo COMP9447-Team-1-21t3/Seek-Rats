@@ -38,6 +38,14 @@ resource "aws_lambda_function" "skrts_report_updater" {
   source_code_hash = data.archive_file.skrts_report_updater.output_base64sha256
 
   role = aws_iam_role.lambda_exec.arn
+
+  layers = [
+    aws_lambda_layer_version.status_tracking_CRUD_python38.arn, 
+    aws_lambda_layer_version.generateToken_python38.arn,
+    aws_lambda_layer_version.modifyTables_python38.arn
+  ]
+
+  timeout = 10
 }
 
 resource "aws_cloudwatch_log_group" "skrts_report_updater" {
@@ -111,4 +119,6 @@ resource "aws_lambda_permission" "api_gw_updater" {
   source_arn = "${aws_apigatewayv2_api.lambda_updater.execution_arn}/*/*"
 }
 
-
+output "report_updater_api_endpoint" {
+  value = aws_apigatewayv2_stage.lambda_updater.invoke_url
+}

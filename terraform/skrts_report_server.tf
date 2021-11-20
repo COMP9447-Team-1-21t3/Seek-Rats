@@ -38,6 +38,13 @@ resource "aws_lambda_function" "skrts_report_server" {
   source_code_hash = data.archive_file.skrts_report_server.output_base64sha256
 
   role = aws_iam_role.lambda_exec.arn
+
+  layers = [
+    aws_lambda_layer_version.status_tracking_CRUD_python38.arn, 
+    aws_lambda_layer_version.generateToken_python38.arn
+  ]
+
+  timeout = 10
 }
 
 resource "aws_cloudwatch_log_group" "skrts_report_server" {
@@ -116,3 +123,95 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
 }
 
+output "server_api_endpoint" {
+  value = aws_apigatewayv2_stage.lambda.invoke_url
+}
+
+# resource "aws_iam_role" "test_server_role" {
+#   name = "serverless_lambda"
+
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [{
+#     Action: [
+#         "dynamodb:*",
+#         "dax:*",
+#         "application-autoscaling:DeleteScalingPolicy",
+#         "application-autoscaling:DeregisterScalableTarget",
+#         "application-autoscaling:DescribeScalableTargets",
+#         "application-autoscaling:DescribeScalingActivities",
+#         "application-autoscaling:DescribeScalingPolicies",
+#         "application-autoscaling:PutScalingPolicy",
+#         "application-autoscaling:RegisterScalableTarget",
+#         "cloudwatch:DeleteAlarms",
+#         "cloudwatch:DescribeAlarmHistory",
+#         "cloudwatch:DescribeAlarms",
+#         "cloudwatch:DescribeAlarmsForMetric",
+#         "cloudwatch:GetMetricStatistics",
+#         "cloudwatch:ListMetrics",
+#         "cloudwatch:PutMetricAlarm",
+#         "cloudwatch:GetMetricData",
+#         "datapipeline:ActivatePipeline",
+#         "datapipeline:CreatePipeline",
+#         "datapipeline:DeletePipeline",
+#         "datapipeline:DescribeObjects",
+#         "datapipeline:DescribePipelines",
+#         "datapipeline:GetPipelineDefinition",
+#         "datapipeline:ListPipelines",
+#         "datapipeline:PutPipelineDefinition",
+#         "datapipeline:QueryObjects",
+#         "ec2:DescribeVpcs",
+#         "ec2:DescribeSubnets",
+#         "ec2:DescribeSecurityGroups",
+#         "iam:GetRole",
+#         "iam:ListRoles",
+#         "kms:DescribeKey",
+#         "kms:ListAliases",
+#         "sns:CreateTopic",
+#         "sns:DeleteTopic",
+#         "sns:ListSubscriptions",
+#         "sns:ListSubscriptionsByTopic",
+#         "sns:ListTopics",
+#         "sns:Subscribe",
+#         "sns:Unsubscribe",
+#         "sns:SetTopicAttributes",
+#         "lambda:CreateFunction",
+#         "lambda:ListFunctions",
+#         "lambda:ListEventSourceMappings",
+#         "lambda:CreateEventSourceMapping",
+#         "lambda:DeleteEventSourceMapping",
+#         "lambda:GetFunctionConfiguration",
+#         "lambda:DeleteFunction",
+#         "resource-groups:ListGroups",
+#         "resource-groups:ListGroupResources",
+#         "resource-groups:GetGroup",
+#         "resource-groups:GetGroupQuery",
+#         "resource-groups:DeleteGroup",
+#         "resource-groups:CreateGroup",
+#         "tag:GetResources",
+#         "kinesis:ListStreams",
+#         "kinesis:DescribeStream",
+#         "kinesis:DescribeStreamSummary",
+#         "cloudwatch:GetInsightRuleReport",
+#         "iam:CreateServiceLinkedRole",
+#         "ssm:GetParameter",
+#         "cloudwatch:GetInsightRuleReport",
+#         "logs:CreateLogGroup",
+#         "logs:CreateLogStream",
+#         "logs:PutLogEvents",
+#         "dynamodb:BatchWriteItem",
+#         "dynamodb:PutItem",
+#         "dynamodb:DeleteItem",
+#         "dynamodb:GetItem",
+#         "dynamodb:Query",
+#         "dynamodb:UpdateItem"
+#       ],
+#       Effect = "Allow"
+#       Sid    = ""
+#       Principal = {
+#         Service = "lambda.amazonaws.com"
+#       }
+#       }
+#     ]
+#   })
+# }
