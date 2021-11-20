@@ -1,7 +1,7 @@
 import '../App.css';
 import React, { useEffect, useState } from "react";
-import url from './config.txt';
-import update_url from './config2.txt';
+import url from './server_api_url.txt';
+import update_url from './update_api_url.txt';
 import axios from "axios";
 
 function Report({auth_url_json}) {
