@@ -8,8 +8,8 @@ function Auth() {
     const queryString = require('query-string');
     const parsed = queryString.parse(window.location.search);
 
-    const client_id = "bafc9bb95ef83e08ded6" //get from config
-    const redirect_uri = "http://seek-rats-site.s3-website-ap-southeast-2.amazonaws.com" //TODO: Get it from config
+    const client_id = "Iv1.562a74542a3983be"
+    const redirect_uri = window.location.origin + window.location.pathname //TODO: Get it from config
     var auth_url = "https://github.com/login/oauth/authorize?client_id="
     auth_url = auth_url.concat(client_id)
     auth_url = auth_url.concat("&redirect_uri=")

@@ -66,9 +66,9 @@ function Report({auth_url_json}) {
         const headers = { 
             "Content-Type": "application/json"
         };
-
-        axios.post(text.concat("/"), body, { headers }) //TODO: change to text.concat("/") when live
-            .then(response => console.log(response));
+        const result =  axios.post(text.concat("/"), body, { headers }) //TODO: change to text.concat("/") when live
+        alert("Report Submitted!");
+        
       });
     }
 
