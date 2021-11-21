@@ -43,7 +43,7 @@ def checker(new_secrets):
 def main():
     loc = os.getcwd() 
     secret_config = "/secret_config.toml"
-    process = subprocess.run(["gitleaks","-v", "--path="+ loc, "--unstaged", '--config-path=' +loc + secret_config], capture_output= True , text= True)
+    process = subprocess.run(["gitleaks","-v", "--path="+ loc, "--unstaged"], capture_output= True , text= True)
 
     report_out = process.stdout
     report_err = process.stderr
