@@ -10,7 +10,6 @@ from generateToken.gitapp_generateToken_helpers import get_parameter
 #Generates list of reviewers from dynamo db
 def current_reviewers(url_re, dynamodb):
     database_list = rst.read_tracking_report(url_re, dynamodb)
-    print(database_list)
     current_reviewers = []
 
     if isinstance(database_list, list):
@@ -22,8 +21,6 @@ def current_reviewers(url_re, dynamodb):
     
 #Checks if user is authenticated, returns False if not, returns token if yes
 def authenticate_user(code):
-    print(code)
-    
     client_id = get_parameter("gitapp_clientID").get("Parameter").get("Value")
     secret = get_parameter("gitapp_clientSecret").get("Parameter").get("Value")
 
@@ -40,8 +37,6 @@ def authenticate_user(code):
     json_res = json.loads(r.content)
     access_token = ""
 
-    print(json_res)
-
     try:
         access_token = json_res['access_token']
         return access_token
@@ -49,7 +44,6 @@ def authenticate_user(code):
         return False
         
 def get_user_id(access_token):
-    print(access_token)
     url = "https://api.github.com/user"
     token = 'token ' + str(access_token)
     headers = {'Authorization': token, 'Accept': 'application/vnd.github.v3+json'}
@@ -106,13 +100,10 @@ def convert_db_secrets(secrets_list, repo_url):
             temp_dict['id'] = secret['secretNum']
             temp_list.append(temp_dict)
     
-    print(temp_list)
     return temp_list
 
 def lambda_handler(event, context):
     request = ""
-    #request =event['requestContext']['http']['method']
-    print(event)
     request = event["httpMethod"]
     
     if request == 'OPTIONS':
@@ -145,15 +136,14 @@ def lambda_handler(event, context):
         #TODO: Get the keys from parameter store
         token = authenticate_user(code)
         if token == False and response_code != 400:
-            print("not valid github user/bad code")  #TODO: for testing
+            #TODO: for testing
             response_code = 401
             body = "not valid github user"
             return generate_return_header(response_code, body)
             
         user_info = get_user_id(token)
-        print(user_info)
         if (user_info == "False" or user_info == False) and response_code != 400:
-            print("wrong user id")  #TODO: for testing
+            #TODO: for testing
             response_code = 401
             body = "wrong user id"
             return generate_return_header(response_code, body)
@@ -161,19 +151,16 @@ def lambda_handler(event, context):
         user_id = str(user_info["id"])
         username = str(user_info["username"])
         token = str(token)
-        print(token)
-    
+        
         #Access database
         
         dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
 
         #Check if they are assigned to the report, if not 
         curr_reviewers = current_reviewers(repo_url,dynamodb)
-        print(repo_url)
-        print(curr_reviewers)
-
+        
         if str(user_id) not in curr_reviewers and response_code != 400:
-            print("not in curr reviewers") #TODO: for testing
+            #TODO: for testing
             response_code = 403
             body = "not in curr reviewers"
             return generate_return_header(response_code, body)
@@ -181,9 +168,8 @@ def lambda_handler(event, context):
         if response_code == 200 and response_code != 400:
             #If they pass all the checks retrieve data from the database 
             db_secrets = rst.read_secret(repo_url, dynamodb)
-            print(db_secrets)
+            
             secrets = convert_db_secrets(db_secrets, repo_url)
-            print(secrets)
             
             body =  {}
             
