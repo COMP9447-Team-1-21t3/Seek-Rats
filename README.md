@@ -14,6 +14,27 @@ Seek-Rats contains the follow components and provides in-depth defence against h
 
 - Code Review , streamlined reporting of non-cross referenced secrets on a secure site when secrets are detected in a commit or pull request. The report can be used to either add to the universal allowlist or post an exposed secret finding to AWS’s Security Hub.
 
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
+
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -75,19 +96,45 @@ Windows:
 then run the command 'Scan for Secrets' in the dropdown
 
 #### How to Configure
+##### Syncing with the allowlist:
 The 'allowlist_url' should contain your organisation's allowlist url to fetch the allowlist  
 It can be extended to recognise more secret types.  
-In the `src/config.json` file, add more entries to the rules array.  
+
+To sync for the current repository, update the allowlist_url with the allowlist endpoint + '/allowlist/get_list/' the repo name (Created when the secret review report is generated below) in `src/config.json` in the following format.
+
+Screenshot of the url output from secret review report (terraform)
+![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911929609686237184/unknown.png)
+
+screenshot of src/config.json
+![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911929245268340776/unknown.png)
+
+With the allow list repo inside, this should pull from the allowlist
+![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911939075316006912/unknown.png)
 
 
+##### Adding additional regex to be matched
+In the `src/config.json` file, add more regex entries to the rules array.  
+![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911929245268340776/unknown.png)
 'regex' is the regular expression to detect the secret type.  
 'description' will be shown when the user is hovering over the secret.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### **Pre-commit Hook**
+The pre-commit hook runs everytime a commit is made and scans for any hardcoded secrets. 
+The pre-commit hook is initially stored on our repository. However, it can be moved to your repository and installed to be used. 
+
+To install on your personal repository
 1.  Install [git-leaks](https://github.com/zricethezav/gitleaks) 
 2.  Install [pre-commit](https://pre-commit.com/)
-3.  Navigate to the root directory of the Seek-Rats repository 
+3.  Navigate to the root directory of the Seek-Rats repository
+4. Move the pre-commit_config.yaml to the root of your desired repository
+`mv pre-commit_config.yaml your_repo_root/`
+5. Move the 
+
+**Identified errors:**
+In the event like `no module named 'requests`',   try running the following line
+ `pip install --target . requests`
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ### **Secrets Code Review Report** 
@@ -140,6 +187,8 @@ Once created, you should be prompted with a list of endpoints. This is needed as
 			- Pull Request Review Comment
 			- Repository
 ![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911911215117266964/unknown.png)
+
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 5. Once you created your GitHub Application, we now have to store our GitHub secrets in Parameter Store so we can easily access them.
 		 
@@ -204,6 +253,9 @@ Use this space to show useful examples of how a project can be used. Additional 
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -212,3 +264,5 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - [x] Add back to top links
 - [ ] Add Additional Templates w/ Examples
 - [ ] Add "components" document to easily copy & paste sections of the readme
+
+<p align="right">(<a href="#top">back to top</a>)</p>
