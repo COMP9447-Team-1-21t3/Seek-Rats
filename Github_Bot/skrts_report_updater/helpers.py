@@ -16,12 +16,10 @@ def valid_url(url):
         
         
 def get_user_id(access_token):
-    print(access_token)
     url = "https://api.github.com/user"
     token = 'token ' + str(access_token)
     headers = {'Authorization': token, 'Accept': 'application/vnd.github.v3+json'}
     r = requests.get(url, headers=headers)
-
     
     try:
         user_dict = {}
@@ -84,7 +82,6 @@ def update_status(sha, status, repo_url, return_url):
     owner_str = str((re.findall("(?:(?!\/).)*", repo_url))[0])
     repo_str = str((re.findall("\/(.*)", repo_url))[0])
     
-    print("gonna run generate token with {} {}".format(owner_str, repo_str))
     token_str = generate_token(owner_str, repo_str)
     headers = generate_token_header(token_str)
     
@@ -99,7 +96,6 @@ def update_status(sha, status, repo_url, return_url):
     #headers = {'Accept': 'application/vnd.github.v3+json', 'Authorization': token}
 
     r = requests.post(url, data=json.dumps(payload), headers=headers)
-    print(r.content)
     if r.status_code == 202:
         return "Success"
     else:

@@ -106,10 +106,8 @@ def report_secrets_finding(title, description, severity):
     response = client.batch_import_findings(Findings=findings)
 
     if response["SuccessCount"] == 1:
-        print("success!")
         return "Success"
     else:
-        print(response)
         return "Error"
 
 
@@ -125,7 +123,6 @@ def third_party_report(reporter, repo_url, secret):
 
     status = report_secrets_finding(title, desc, "CRITICAL")
     
-    print(status)
     return status
 
 
@@ -141,5 +138,4 @@ def false_positive_party_report(reporter, repo_url, secret):
 
     status = report_secrets_finding(title, desc ,"INFORMATIONAL")
     
-    print(status)
     return status
