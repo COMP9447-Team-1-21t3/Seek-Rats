@@ -1,3 +1,4 @@
+import pytest
 from modifyTables import allowlist_modifyTables
 from MT_test_helpers import gen_random_strings
 
