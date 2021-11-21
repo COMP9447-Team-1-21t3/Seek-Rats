@@ -1,58 +1,62 @@
 import json
 import boto3
-
-#Update the status of PR. Needs the HEAD_SHA, status and the repo_url ({owner/repo_name})
-#Returns whether it succeeded or not
-def update_status(sha, status, repo_url):
-
-    url = 'https://api.github.com/repos/'+repo_url+'/statuses/'+sha
-    token = 'token ' + str(os.environ['token']) #TODO : Get from parameter store
-    payload = {'state': status , 'context':'Secrets Review Needed', 'target_url': str(os.environ['ngrok'])} 
-    # The state of the status. Can be one of error, failure, pending, or success.
-
-    headers = {'Accept': 'application/vnd.github.v3+json', 'Authorization': token}
-
-    r = requests.post(url, data=json.dumps(payload), headers=headers)
-    print(url)
-    print(r.content)
-    if r.status_code == 202:
-        return "Success"
-    else:
-        return "Fail"
-
-
-#Checks if all reviewers have completed the report.
-#Return True for yes, False for no.
-def check_all_reviewers(reviewer_list):
+import requests
+import os
+import re
+import report_status_tracking as rst
+import urllib
+from helpers import *
+from modifyTables import allowlist_modifyTables
+from generateToken.gitapp_generateToken import get_ids
+from sechub import *
+    
+#Attempts to send all secrets to the allow list. 
+#If all sent to allow list-> ret True. If any not send e.g. to hub -> ret False
+def send_to_allow_list(secrets_list ,dynamodb, repo_url):
     check = True
 
-    if isinstance(reviewer_list, list):
+    if isinstance(secrets_list, list) and (secrets_list != []):
+        allow_terms = []
+        for secret in secrets_list:
 
-        if (reviewer_list != []) and (False in reviewer_list.values()):
-            check = False
-    
-    else:
-        check = False
+            if secret['secret_status'] == "allow":
+                allow_terms.append(secret['secret'])
+            else:
+                check = False
+                
+        
+        owner = str((re.findall("(?:(?!\/).)*", repo_url))[0])
+        repo = str((re.findall("\/(.*)", repo_url))[0])
+        print(owner + " " + repo)
+        try :
+            ids = get_ids(owner, repo)
+            owner_id = ids['org_id']
+            repo_id = ids['repo_id']
+            
+            new_terms = allow_terms
+            
+            insert_new_terms(owner_id, repo_id, new_terms, dynamodb=dynamodb)
+        except:
+            pass
+
     return check
-
-#Gets reviewer table in the database and marks the reviewer as done.
-#Returns updated dict but does not send back to database.
-def mark_reviewer_done(user_id, repo_url):
-
-    temp_dict = {'93390642': True, '9999999': False}  #TODO: go to database and get this val
-    temp_dict[user_id] = True
-   
-    return temp_dict
-
-#Send all secrets to the allow list 
-def send_to_allow_list(secrets_list):
-
-    #TODO : go through the secrets database entry and send all to the allow list
-    #send to allow list   /allowlist/add_terms/{org_id}/{repo_id}:
-    pass
-
-def lambda_handler(event, context):
     
+    
+#Generates list of reviewers from dynamo db
+def current_reviewers(url_re, dynamodb):
+    database_list = rst.read_tracking_report(url_re, dynamodb)
+    print(database_list)
+    current_reviewers = []
+
+    if isinstance(database_list, list):
+        if (database_list != []): 
+            for status in database_list:
+                current_reviewers.append(status["reviewerID"])
+
+    return current_reviewers
+    
+    
+def lambda_handler(event, context):
     request = ""
     try:
         request = event["httpMethod"]
@@ -69,73 +73,135 @@ def lambda_handler(event, context):
     
         return {
             'statusCode': 200,
-            'body' : request,
             'headers': headers
         }
-
+    
     if request == 'POST':
-        user_id = "9999999" #Placeholder for now, TODO: verify identity
-        
-        form = event
-        # user_token = form["user"] #TODO: verify identity
-        report = form["body"]
-        report = str(report)
-        report_json = json.loads(report)
-        
-        user_token = report_json["user"]
-        report_list = report_json["body"]
-        sha = report_json["commit_sha"]
-        
-        repo_url = ""
+        form = json.loads(event["body"])
+        body = form["body"]
+        repo_url = str(form["repo_url"])
+        token = form["token"]
 
-        #Temporary. Go through the form and update the secrets table
-        for list_item in report_list:
-            key = list_item[0]
-            val = list_item[1]
+        org_repo_url = valid_url(repo_url)
 
-            if key == "id":
-                repo_url = val
-            elif key.isnumeric():
+        if org_repo_url == False: #NOT VALID URL
+            print("invalid url")
+            return 400 #TODO: update this
+
+        user_info = get_user_id(token) #check if they have correct id
+        if user_info == False:
+            print("wrong user id")  #TODO: for testing
+            return 400
+        
+        print(user_info)
+
+        user_id = str(user_info["id"])
+        username = str(user_info["username"])
+
+        dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
+
+        print("nice")
+        secrets = rst.read_secret(repo_url, dynamodb)
+        print("=====BEFORE SECRETS=====")
+        print(secrets)
+
+        assigned_reviewers = current_reviewers(repo_url,dynamodb)
+        if str(user_id) not in assigned_reviewers:
+            print('not in assigned reviewers')
+            return 400
+            pass
+
+        # #Temporary. Go through the form and update the secrets table. This is in lambda format
+        # for list_item in report_list:
+        
+        status_secrets = get_secret_statuses(secrets)
+        print(status_secrets)
+        secrets_list = get_secrets_list(secrets)
+        print(secrets_list)
+
+        for list in body:
+            key = list[0]
+            val = list[1]
+            if key.isnumeric():
+                
+                curr_val = "N/A"
+                curr_val = status_secrets[str(key)]
+                curr_secret = secrets_list[str(key)]
+                print("curr val " + str(curr_val) + str(curr_secret))
+
                 if val == "hub":
                     print("Sending secret {} to {}".format(key, val))
-                    #update secrets table to make it send to sec hub
-                    #send security report to security hub for that specific one if it hasn't been done before
-                    pass
+
+                    if curr_val == "hub":
+                        third_party_report(username, repo_url, curr_secret)
+                        pass #Do nothing since its already been sent to sechub
+                    else: #New status is hub, send to security hub
+                        rst.update_secret_status(repo_url, str(key), "hub", dynamodb)
+                        third_party_report(username, repo_url, curr_secret)
+
                 elif val == "allow":
                     print("Sending secret {} to {}".format(key, val))
-                    #update secrets table to make it allowlist for that secret
-                    #if its already sechub do not change
-                    pass
 
-        reviewers_table = mark_reviewer_done(user_id, repo_url) 
-        print(reviewers_table)
-        print(check_all_reviewers(reviewers_table))
+                    if curr_val == "hub" or curr_val == "allow":
+                        pass #Do nothing since its already been changed
+                    else: #hasn't been touched, so just update the allow list in database
+                        rst.update_secret_status(repo_url, str(key), "allow", dynamodb)
 
-        if check_all_reviewers(reviewers_table): #Checks if all reviewers have reviewed the list. 
+
+        #Update tracking for the user and check if all reviewers are done
+        rst.update_tracking_status(repo_url, user_id , True, dynamodb) #updates tracking for the user
+        status_table = rst.read_tracking_report(repo_url, dynamodb)
+        print("---after status--")
+        print(status_table)
+        print("------ --")
+        print(check_all_reviewers(status_table))
+        
+        secrets = rst.read_secret(repo_url, dynamodb)
+        print("=====AFTER SECRETS=====")
+        print(secrets)
+
+        if check_all_reviewers(status_table): #Checks if all reviewers have reviewed the list. 
             #If all reviewers have finished their reviewer
-            # TODO: Check if all secrets in the PR are allow list secrets 
-            #       If any of them are sechub, deny the PR.
 
-            # TODO: Delete all entries relating to the unique id as its completed 
+            secrets = rst.read_secret(repo_url, dynamodb) #Get new secrets table with updated values
+            all_allow = send_to_allow_list(secrets, dynamodb, org_repo_url)
 
-            #Update the status of the PR if all are add to allow list
-            #update_status(form["sha"], "success", form["id"])
+            print(all_allow)
 
-            pass
+            # Try to update the status of the PR 
+            try: #If not empty, SHA should be stored in all status table lists
+                sha = status_table[0]["SHA"]
+                print(sha)
+                print(org_repo_url)
+                if all_allow == True: # All true = success
+                    update_status(sha, "success", org_repo_url, repo_url)
+                    print("updated success")
+                else: # One failed = error
+                    update_status(sha, "failure",  org_repo_url, repo_url)
+                    print("updated failure")
+            except:
+                pass
 
-        else: #Not all reviewers have finished
-            # TODO: Send the reviewers_table report to reviewer database
-            pass
-
-    
         headers = {
-            'Content-Type': 'text/plain',
-            'Access-Control-Allow-Origin' : '*',
-            'Access-Control-Allow-Headers' : '*',
+            'Content-Type': 'application/json',
+            "Access-Control-Allow-Origin" : "*",
+            "Access-Control-Allow-Methods" :"*"
         }
-    
+
         return {
             'statusCode': 200,
-            'body' : event,
+            'body': 'success',
             'headers': headers
-        }
+        } 
+    
+    headers = {
+        'Content-Type': 'text/plain',
+        'Access-Control-Allow-Origin' : '*',
+        'Access-Control-Allow-Headers' : '*',
+    }
+
+    return {
+        'statusCode': 201,
+        'body' : event,
+        'headers': headers
+    }
