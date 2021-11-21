@@ -45,8 +45,7 @@ def gitleaks_scan_diff(allow_list_terms, file_name=""):
     else:
         loc = file_name
         
-        process = subprocess.run(["./gitleaks","-v", "--path="+ loc, "--no-git",], capture_output= True , text= True)
-        print(process)
+        process = subprocess.run(["./gitleaks","-v", "--path="+ loc, "--no-git"], capture_output= True , text= True)
 	
     report_out = process.stdout
     report_err = process.stderr
