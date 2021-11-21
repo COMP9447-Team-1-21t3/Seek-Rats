@@ -164,3 +164,8 @@ resource "aws_iam_role_policy_attachment" "ssm_access_skrts_updater" {
   role       = "${aws_iam_role.lambda_exec_skrts_updater.name}"
   policy_arn = "${aws_iam_policy.policy.arn}"
 }
+
+resource "aws_iam_role_policy_attachment" "sechub_access_skrts_updater" {
+  role       = "${aws_iam_role.lambda_exec_skrts_updater.name}"
+  policy_arn = "${aws_iam_policy.sec_hub_access.arn}"
+}

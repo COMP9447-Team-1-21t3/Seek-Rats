@@ -34,7 +34,7 @@ def lambda_handler(event, context):
 
 
 # Function to report a finding to security hub given a title and description
-def report_secrets_finding(title, description):
+def report_secrets_finding(title, description, severity):
     client = boto3.client('securityhub')
 
     filters = {
@@ -78,7 +78,7 @@ def report_secrets_finding(title, description):
         "Description": description,
         "FindingProviderFields": {
             "Severity": {
-                "Label": "CRITICAL",
+                "Label":severity,
                 "Original": "0"
             },
             "Types": [
@@ -123,7 +123,23 @@ def third_party_report(reporter, repo_url, secret):
 
     desc = desc[:-1]
 
-    status = report_secrets_finding(title, desc)
+    status = report_secrets_finding(title, desc, "CRITICAL")
+    
+    print(status)
+    return status
+
+
+# Generate the third party secrets report and report to security hub
+def false_positive_party_report(reporter, repo_url, secret):
+    title = "[{}] False Positive Secret Report".format(repo_url)
+
+    desc = "Reported by {}, Repo = {}".format(reporter, repo_url)
+    desc += " False Positives Reported: "
+    desc += " {},".format(secret)
+
+    desc = desc[:-1]
+
+    status = report_secrets_finding(title, desc ,"INFORMATIONAL")
     
     print(status)
     return status

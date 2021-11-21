@@ -18,7 +18,7 @@ def get_new_secrets_dict(report_obj, new_secrets_list):
             all_secrets.append(secret_dict)
     return all_secrets
 
-
+#Get all secrets from the report object
 def get_all_secrets(report_obj):
     all_secrets = []
     for i in range(len(report_obj)):
@@ -26,6 +26,7 @@ def get_all_secrets(report_obj):
         all_secrets.append(secret)
     return all_secrets
 
+#Checks whether there is secrets or not
 def checker(new_secrets):
     if (len(new_secrets)!=0):
         print("Hardcoded secrets detected in your commit, use 'git commit --no-verify instead'")
@@ -34,7 +35,7 @@ def checker(new_secrets):
         print(" No secrets detected, Commit Successful'")
         return 0
 
-
+#Runs gitleaks and cross references
 def gitleaks_scan_diff(allow_list_terms, file_name=""):
     loc = str(os.getcwd()).strip()
     print('This is the current directory:',loc)
@@ -77,15 +78,15 @@ def gitleaks_scan_diff(allow_list_terms, file_name=""):
 
         detected_secrets = []
         detected_secrets = get_all_secrets(report_obj)
-        # print(detected_secrets)
         
         my_results = []
         
         whitelist  = allow_list_terms
-        #may just be allow_list_terms
-        
+
         for i in range(len(whitelist)):
             my_results += [whitelist[i][1].term]
+        
+        new_secrets = []
         
         for i in detected_secrets:
             if i not in my_results:
@@ -93,7 +94,8 @@ def gitleaks_scan_diff(allow_list_terms, file_name=""):
         
         print(new_secrets)
         val = checker(new_secrets)
-
+        
+        #Return 0 if no new secrets are detected else return a list of them
         if val == 1:
             return get_new_secrets_dict(report_obj, new_secrets)
         else:

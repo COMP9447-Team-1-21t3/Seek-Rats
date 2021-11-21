@@ -228,3 +228,27 @@ resource "aws_iam_policy" "policy_secret_access" {
     }
   )
 }
+
+resource "aws_iam_policy" "sec_hub_access" {
+  name        = "sec_hub_access"
+  path        = "/"
+  description = "An access policy for sec_hub_access to access and create findings"
+
+  policy = jsonencode(
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                  "securityhub:UpdateFindings",
+                  "securityhub:GetFindings",
+                  "securityhub:BatchImportFindings"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+  )
+}
