@@ -1,6 +1,7 @@
 import pytest
 import os
 from moto import mock_dynamodb2
+import boto3
 
 @pytest.fixture
 def aws_credentials():
@@ -13,5 +14,5 @@ def aws_credentials():
 @pytest.fixture
 def db_resource(aws_credentials):
     with mock_dynamodb2():
-        dynamodb = boto3.resource('dynamodb', region="ap-southeast-2")
+        dynamodb = boto3.resource('dynamodb')
         yield dynamodb
