@@ -40,12 +40,13 @@ def gitleaks_scan_diff(allow_list_terms, file_name=""):
     loc = str(os.getcwd()).strip()
     print('This is the current directory:',loc)
     print(file_name)
+    secret_config = "/secret_config.toml"
     if file_name == "":
-        process = subprocess.run(["./gitleaks","-v", "--path="+ loc, "--unstaged"], capture_output= True , text= True)
+        process = subprocess.run(["./gitleaks","-v", "--path="+ loc, "--unstaged", '--config-path=' +loc + secret_config], capture_output= True , text= True)
     else:
         loc = file_name
         
-        process = subprocess.run(["./gitleaks","-v", "--path="+ loc, "--no-git",], capture_output= True , text= True)
+        process = subprocess.run(["./gitleaks","-v", "--path="+ loc, "--no-git", '--config-path=' +loc + secret_config], capture_output= True , text= True)
         print(process)
 	
     report_out = process.stdout
