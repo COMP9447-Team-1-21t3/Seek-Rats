@@ -6,7 +6,6 @@ from requests import get
 import urllib.request
 from urllib.parse import quote
 
-
 def get_values(repo_url):
     baseURL = "https://cl2tu6os57.execute-api.ap-southeast-2.amazonaws.com/beta"
     url = f"{baseURL}/allowlist/get_list/"
@@ -43,10 +42,12 @@ def checker(new_secrets):
 
 def main():
     loc = os.getcwd() 
-    process = subprocess.run(["gitleaks","-v", "--path="+ loc, "--unstaged"], capture_output= True , text= True)
+    secret_config = "/secret_config.toml"
+    process = subprocess.run(["gitleaks","-v", "--path="+ loc, "--unstaged", '--config-path=' +loc + secret_config], capture_output= True , text= True)
 
     report_out = process.stdout
     report_err = process.stderr
+    
     new_secrets = []
     if("No leaks found" in report_err or "repository does not exist" in report_err):
         val = checker(new_secrets)
