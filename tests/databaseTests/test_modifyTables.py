@@ -18,12 +18,16 @@ org_id = "123456"
 
 @pytest.fixture
 def create_table(db_resource):
-    allowlist_modifyTables.create_organization_table(org_id, db_resource)
+    allowlist_modifyTables.create_organization_table(org_id, dynamodb=db_resource)
     yield
 
 def test_create_table(db_resource):
-    allowlist_modifyTables.create_organization_table(org_id, db_resource)
-    assert True
+    allowlist_modifyTables.create_organization_table(org_id, dynamodb=db_resource)
+    tables = list(db_resource.tables.all())
+    assert len(tables) == 1
+    tableName = f"{allowlist_modifyTables.tablename_prefix}_{org_id}"
+    table = db_resource.Table(tableName)
+    assert table.item_count == 0 
 
 def test_integration():
     assert True
