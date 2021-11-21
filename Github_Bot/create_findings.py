@@ -106,10 +106,8 @@ def report_secrets_finding(title, description):
     response = client.batch_import_findings(Findings=findings)
 
     if response["SuccessCount"] == 1:
-        print("success!")
         return "Success"
     else:
-        print(response)
         return "Error"
 
 
