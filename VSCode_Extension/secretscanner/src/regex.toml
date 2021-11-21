@@ -1,0 +1,8 @@
+# This extention can be extended to recognise more types of secrets
+# Simply follow the structure below.
+# description will be shown to the user when their cursor is over the recognised secret
+# regex is the regular expression that matches the type of secret you want to recognise
+
+[[rules]]
+  description = "AWS Access Key"
+  regex = '''(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'''
