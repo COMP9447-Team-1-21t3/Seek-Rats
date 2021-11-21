@@ -14,27 +14,6 @@ Seek-Rats contains the follow components and provides in-depth defence against h
 
 - Code Review , streamlined reporting of non-cross referenced secrets on a secure site when secrets are detected in a commit or pull request. The report can be used to either add to the universal allowlist or post an exposed secret finding to AWS’s Security Hub.
 
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
@@ -102,7 +81,9 @@ It can be extended to recognise more secret types.
 
 To sync for the current repository, update the allowlist_url with the allowlist endpoint + '/allowlist/get_list/' the repo name (Created when the secret review report is generated below) in `src/config.json` in the following format.
 
-Screenshot of the url output from secret review report (terraform)
+The allow list endpoint can be found once you generate the secret review report and running `terraform output`.
+Image of the screenshot of the url output from secret review report.
+
 ![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911929609686237184/unknown.png)
 
 screenshot of src/config.json
@@ -129,11 +110,27 @@ To install on your personal repository
 3.  Navigate to the root directory of the Seek-Rats repository
 4. Move the pre-commit_config.yaml to the root of your desired repository
 `mv pre-commit_config.yaml your_repo_root/`
-5. Move the 
+5. Move the Pre-commit_Hook/gitleaks_checker.py/ to the root of your desired repository
+`mv pre-commit_config.yaml your_repo_root/`
+6. Run `pre-commit install` which sets up the pre commit in your repo
+7. Run `pre commit run` to test the hook before execution
+
+If there are no problems your hook has been set up using gitleaks everytime you run a commit.
 
 **Identified errors:**
 In the event like `no module named 'requests`',   try running the following line
  `pip install --target . requests`
+
+**Syncing with the allowlist:**
+
+Similar to the VSCode plugin, simply edit the url to be the same as  found in the `gitleaks_checker.py`which is originally found in `Pre-commit_Hook/gitleaks_checker.py`
+
+The allow list endpoint can be found once you generate the secret review report and running `terraform output`.
+Image of the screenshot of the url output from secret review report. (Image of the end point below)
+
+![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911929609686237184/unknown.png)
+
+![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911945500922617886/unknown.png)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
