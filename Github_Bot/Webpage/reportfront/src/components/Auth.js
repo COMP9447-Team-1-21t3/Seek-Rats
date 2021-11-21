@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react";
 import Report from './Report';
 import seek_logo from "../seek_rats.png";
 import github_login from "../github_img.png"
+import client_config from "./client_id.json"
 
 function Auth() {
     const queryString = require('query-string');
     const parsed = queryString.parse(window.location.search);
 
-    const client_id = "Iv1.562a74542a3983be"
+    const client_id = client_config.client
     const redirect_uri = window.location.origin + window.location.pathname //TODO: Get it from config
     var auth_url = "https://github.com/login/oauth/authorize?client_id="
     auth_url = auth_url.concat(client_id)

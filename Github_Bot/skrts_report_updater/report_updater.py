@@ -27,17 +27,19 @@ def send_to_allow_list(secrets_list ,dynamodb, repo_url):
         
         owner = str((re.findall("(?:(?!\/).)*", repo_url))[0])
         repo = str((re.findall("\/(.*)", repo_url))[0])
-        print(owner + " " + repo)
-        try :
-            ids = get_ids(owner, repo)
-            owner_id = ids['org_id']
-            repo_id = ids['repo_id']
-            
-            new_terms = allow_terms
-            
-            insert_new_terms(owner_id, repo_id, new_terms, dynamodb=dynamodb)
-        except:
-            pass
+
+        ids = get_ids(owner, repo)
+        owner_id = ids['org_id']
+        repo_id = ids['repo_id']
+        
+        new_terms = allow_terms
+        try:
+            false_positive_party_report(owner, repo_url, str(new_terms))
+            allowlist_modifyTables.insert_new_terms(owner_id, repo_id, new_terms, dynamodb=dynamodb)
+        except Exception as e:
+            #If error occurs, as its just adding to allowlist and is a false positive can be skipped
+            print(e)
+        
 
     return check
     
@@ -133,7 +135,6 @@ def lambda_handler(event, context):
                     print("Sending secret {} to {}".format(key, val))
 
                     if curr_val == "hub":
-                        third_party_report(username, repo_url, curr_secret)
                         pass #Do nothing since its already been sent to sechub
                     else: #New status is hub, send to security hub
                         rst.update_secret_status(repo_url, str(key), "hub", dynamodb)
