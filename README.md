@@ -250,3 +250,9 @@ terraform apply
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+
+[How To Use Secrets Code Review DEMO](https://youtu.be/N2JpZoPHDUE)
+
+[Pre Commit Hook DEMO](https://youtu.be/rH2Lej9xyKc)
+
+[VSCODE Extension DEMO](https://youtu.be/XdT3u0a3ZKI)
