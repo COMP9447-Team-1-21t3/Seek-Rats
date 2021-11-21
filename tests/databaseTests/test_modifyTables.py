@@ -1,5 +1,6 @@
+import pytest
 from modifyTables import allowlist_modifyTables
-from tests_helpers import gen_random_strings
+from MT_test_helpers import gen_random_strings
 
 """
 Functions to test:
@@ -16,9 +17,13 @@ Functions to test:
 org_id = "123456"
 
 @pytest.fixture
-def test_create_table(db_resource):
+def create_table(db_resource):
     allowlist_modifyTables.create_organization_table(org_id, db_resource)
     yield
+
+def test_create_table(db_resource):
+    allowlist_modifyTables.create_organization_table(org_id, db_resource)
+    assert True
 
 def test_integration():
     assert True
