@@ -9,7 +9,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 	const rules = config.rules;
 	const allow_list = await getAllowList();
-	// const allow_list = ['AKIAIOSFODNN7EXAMPLX'];
 	
 	let timeout: NodeJS.Timeout | undefined = undefined;
 
@@ -28,8 +27,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			return [];
 		}
 		const response = await axios.get(url);
-		// return response.data.terms;
-		return response.data;
+		return response.data.terms;
 	}
 
 	function updateDecoration(regEx: RegExp, description: string) {
