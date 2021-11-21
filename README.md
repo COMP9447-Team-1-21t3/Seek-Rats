@@ -45,4 +45,7 @@ This VS Code extension adds a command to your editor that when run will scan the
 Hard coded secrets that are found will be highlighted\
 When you hover over a highlighted secret with your cursor, information about the secret will be displayed
 
-
+## Github Bot
+The webhook uses DynamoDB tables to track the status of pull requst reviews.\
+The python file in /lambda_layers/status_tracking_CRUD/report_status_tracking.py is a function that defines the CRUD operations\
+of the DynamoDB tables related to status tracking. This python file is designed to be zipped as a lambda layer for usage convenience.
