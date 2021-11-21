@@ -34,13 +34,10 @@ def get_allow_list_terms(owner_id, repo_id, dynamodb):
     
 def lambda_handler(event, context):
 
-    print(event)
     request =event['httpMethod']
 
     if request == 'POST':
         dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-2')
-        
-        print(event)
         
         body = json.loads(event['body'])
         
@@ -111,7 +108,6 @@ def lambda_handler(event, context):
                 
             elif action == "synchronize":
                 #HEAD SHA is updated so must synchronise the pull
-                #TODO: May do the same thing as action=="edited"
                 rst.update_SHA(url_with_pull_id, headsha, dynamodb)
       
             if action == "created" or action == "reopened" or action == "opened" or action == "edited": 
@@ -120,16 +116,13 @@ def lambda_handler(event, context):
     
                 if reviewers == []: #No reviewers, allow for it to be merged
                     #Set status of pull request to success
-                    print("Updating status to success")
                     update_status(head_sha, "success", repo_url,url_with_pull_id )
                 else:  #Deny auto pull request
                     #Set status of pull request to pending
-                    print("Updating status to pending")
                     update_status(head_sha, "pending", repo_url,url_with_pull_id )
                     report_list = create_database_entry_value(url_with_pull_id, head_sha, reviewers, dynamodb)
                 
-                print("updated status")
-                
+
                 # Set up the secrets table. Get the diff->scan it->cross reference results-> put into table
                 # Get the diff of the commit
                 diff_code = get_diff(body, repo_url)
