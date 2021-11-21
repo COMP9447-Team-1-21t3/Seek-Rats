@@ -10,7 +10,7 @@ resource "aws_s3_bucket" "lambda_bucket" {
   force_destroy = true
 }
 
-data "archive_file" "skrts_report_server" {
+data "archive_file" "skrts_report_server_zip" {
   type = "zip"
 
   source_dir  = "${path.module}/../Github_Bot/skrts_report_server"
@@ -21,12 +21,12 @@ resource "aws_s3_bucket_object" "seek_rats_server" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
   key    = "skrts_report_server.zip"
-  source = data.archive_file.skrts_report_server.output_path
+  source = data.archive_file.skrts_report_server_zip.output_path
 
-  etag = filemd5(data.archive_file.skrts_report_server.output_path)
+  etag = filemd5(data.archive_file.skrts_report_server_zip.output_path)
 }
 
-resource "aws_lambda_function" "skrts_report_server" {
+resource "aws_lambda_function" "skrts_report_server_lambda" {
   function_name = "SeekRatsReportServer"
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
@@ -35,7 +35,7 @@ resource "aws_lambda_function" "skrts_report_server" {
   runtime = "python3.8"
   handler = "seek_rats_server.lambda_handler"
 
-  source_code_hash = data.archive_file.skrts_report_server.output_base64sha256
+  source_code_hash = data.archive_file.skrts_report_server_zip.output_base64sha256
 
   role = aws_iam_role.lambda_exec_skrts_server.arn
 
@@ -48,7 +48,7 @@ resource "aws_lambda_function" "skrts_report_server" {
 }
 
 resource "aws_cloudwatch_log_group" "skrts_report_server" {
-  name = "/aws/lambda/${aws_lambda_function.skrts_report_server.function_name}"
+  name = "/aws/lambda/${aws_lambda_function.skrts_report_server_lambda.function_name}"
 
   retention_in_days = 30
 }
@@ -96,7 +96,7 @@ resource "local_file" "skrts_report_server_data" {
 resource "aws_apigatewayv2_integration" "skrts_report_server" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  integration_uri    = aws_lambda_function.skrts_report_server.invoke_arn
+  integration_uri    = aws_lambda_function.skrts_report_server_lambda.invoke_arn
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
 }
@@ -117,7 +117,7 @@ resource "aws_cloudwatch_log_group" "api_gw" {
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.skrts_report_server.function_name
+  function_name = aws_lambda_function.skrts_report_server_lambda.function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
