@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyjwt = {extras = ["crypto"], version = "*"}
+boto3 = "*"
+requests = "*"
+
+[dev-packages]
+moto = "*"
+pylint = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.8"
+
+[scripts]
+test = "pytest"
