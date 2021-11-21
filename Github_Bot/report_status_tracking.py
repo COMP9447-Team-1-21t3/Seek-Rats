@@ -13,7 +13,8 @@ def delete_table(table_name, dynamodb=None):
         table = dynamodb.Table(table_name)
         table.delete()
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print(f'{table_name} table successfully deleted')
         return True
@@ -52,7 +53,8 @@ def create_tracking_table(dynamodb=None):
             }
         )
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print("Tracking table successfully created")
         return True
@@ -73,7 +75,8 @@ def insert_tracking(reportURL, reviewerID, SHA, status=False, dynamodb=None):
         table = dynamodb.Table(table_name)
         response = table.put_item(Item=item)
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return True
 
@@ -97,7 +100,8 @@ def update_tracking_status(reportURL, reviewerID, new_status, dynamodb=None):
             ReturnValues="UPDATED_NEW"
         )
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print(f'successfully updated {response["Attributes"]}')
         return True
@@ -127,7 +131,8 @@ def update_SHA(reportURL, new_SHA, dynamodb=None):
             )
             print(f'successfully updated {response["Attributes"]}')
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return True
 
@@ -156,13 +161,14 @@ def delete_tracking_record(reportURL, dynamodb=None):
                 batch.delete_item(Key=content)
 
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print(f'successfully deleted {deleted_items} records')
         return True
 
 
-# This function inserts a row into the tracking table
+# This function deletes a tracking record associated with a given reportURL and a reviewerID
 def delete_tracking(reportURL, reviewerID, dynamodb=None):
     table_name = "tracking"
     if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
@@ -175,7 +181,8 @@ def delete_tracking(reportURL, reviewerID, dynamodb=None):
         table = dynamodb.Table(table_name)
         response = table.delete_item(Key=key)
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return True
 
@@ -196,8 +203,22 @@ def read_tracking_report(reportURL, dynamodb=None):
         response = table.query(**query_params)
         for item in response['Items']:
             to_return.append(item)
+
+        # In case the tracking table has more than 100 records
+        while response ['LastEvaluatedKey']:
+            response = table.query(
+                **query_params,
+                ExclusiveStartKey=response['LastEvaluatedKey']
+            )
+            # append any additional records 100 by 100
+            for item in response['Items']:
+                to_return.append(item['Items'])
+    except KeyError:
+        # response ['LastEvaluatedKey'] will not exist if there is no record leftover after the first run
+        return to_return
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return to_return
 
@@ -206,7 +227,6 @@ def read_tracking_report(reportURL, dynamodb=None):
 def read_tracking_reviewer_status(reportURL, reviewerID, dynamodb=None):
     table_name = "tracking"
     if not dynamodb: dynamodb = boto3.resource('dynamodb', endpoint_url=url)
-
     try:
         table = dynamodb.Table(table_name)
         key = {
@@ -215,7 +235,8 @@ def read_tracking_reviewer_status(reportURL, reviewerID, dynamodb=None):
         }
         response = table.get_item(Key=key)
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return response['Item']
 
@@ -253,7 +274,8 @@ def create_secret_table(dynamodb=None):
             }
         )
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print("Secret table successfully created")
         return True
@@ -275,7 +297,8 @@ def insert_secret(reportURL, secretNum, secret, secret_info, status, dynamodb=No
         table = dynamodb.Table(table_name)
         response = table.put_item(Item=item)
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return True
 
@@ -299,7 +322,8 @@ def update_secret_status(reportURL, secretNum, new_status, dynamodb=None):
             ReturnValues="UPDATED_NEW"
         )
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print(f'successfully updated {response["Attributes"]}')
         return True
@@ -321,8 +345,22 @@ def read_secret(reportURL, dynamodb=None):
         response = table.query(**query_params)
         for item in response['Items']:
             to_return.append(item)
+
+        # In case the tracking table has more than 100 records
+        while response['LastEvaluatedKey']:
+            response = table.query(
+                **query_params,
+                ExclusiveStartKey=response['LastEvaluatedKey']
+            )
+            # append any additional records 100 by 100
+            for item in response['Items']:
+                to_return.append(item['Items'])
+    except KeyError:
+        # response ['LastEvaluatedKey'] will not exist if there is no record leftover after the first run
+        return to_return
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         return to_return
 
@@ -350,7 +388,8 @@ def delete_secret_record(reportURL, dynamodb=None):
                 }
                 batch.delete_item(Key=content)
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return False
     else:
         print(f'successfully deleted {deleted_items} records')
         return True
