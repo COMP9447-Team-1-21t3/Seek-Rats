@@ -64,10 +64,24 @@ def test_insert_new_term(db_resource, setup_repo):
     allowlist_modifyTables.insert_new_term(org_id, repo_id, term, dynamodb=db_resource)
     table = db_resource.Table(tableName)
     assert table.item_count == 2
-    
-def test_insertion_without_setup(db_resource):
-    assert True
 
-def test_read_repo(db_resource, create_table):
+def test_read_repo(db_resource, setup_repo):
     #allowlist_modifyTables.read_repo()
+    tableName = f"{allowlist_modifyTables.tablename_prefix}_{org_id}"
+    table = db_resource.Table(tableName)
+    assert table.item_count == 1
+
+    terms = allowlist_modifyTables.read_repo(org_id, repo_id, dynamodb=db_resource)
+    assert len(terms) == 0
+
+    term = "hello"
+    allowlist_modifyTables.insert_new_term(org_id, repo_id, term, dynamodb=db_resource)
+    table = db_resource.Table(tableName)
+    assert table.item_count == 2
+
+    terms = allowlist_modifyTables.read_repo(org_id, repo_id, dynamodb=db_resource)
+    assert len(terms) == 1
+    assert terms[0] == term
+    
+def test_functions_without_setup(db_resource):
     assert True
