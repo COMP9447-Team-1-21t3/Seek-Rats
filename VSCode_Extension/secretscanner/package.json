@@ -38,7 +38,7 @@
 		"watch": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"postinstall": "cp src/regex.toml out/",
+		"postinstall": "cp src/config.json out/",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
@@ -55,6 +55,6 @@
 		"@vscode/test-electron": "^1.6.2"
 	},
 	"dependencies": {
-		"toml": "^3.0.0"
+		"axios": "^0.24.0"
 	}
 }
