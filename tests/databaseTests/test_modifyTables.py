@@ -110,6 +110,7 @@ def test_insert_new_terms_with_info(db_resource, setup_repo):
     assert table.item_count == 51
     tterms = allowlist_modifyTables.read_repo(org_id, repo_id, dynamodb=db_resource)
     assert len(terms) == len(tterms)
+    assert all(elem['term'] in tterms for elem in terms)
 
 
 def test_read_repo_with_info(db_resource, setup_repo):
@@ -125,6 +126,14 @@ def test_read_repo_with_info(db_resource, setup_repo):
     terms = allowlist_modifyTables.read_repo_with_info(org_id, repo_id, dynamodb=db_resource)
     assert len(terms) == 1
     assert terms[0] == {'term':term, 'info':{}}
+
+    terms = gen_random_strings(50)
+    terms = [{'term':x, 'info': {'term':x}} for x in terms]
+    allowlist_modifyTables.insert_new_terms_with_info(org_id, repo_id, terms, dynamodb=db_resource)
+
+    tterms = allowlist_modifyTables.read_repo_with_info(org_id, repo_id, dynamodb=db_resource)
+    assert len(terms)+1 == (len(tterms)) 
+
 
 def test_functions_without_setup(db_resource):
     assert True
