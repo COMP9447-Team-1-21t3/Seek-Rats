@@ -82,6 +82,37 @@ def test_read_repo(db_resource, setup_repo):
     terms = allowlist_modifyTables.read_repo(org_id, repo_id, dynamodb=db_resource)
     assert len(terms) == 1
     assert terms[0] == term
-    
+
+def test_insert_new_terms(db_resource, setup_repo):
+    tableName = f"{allowlist_modifyTables.tablename_prefix}_{org_id}"
+    table = db_resource.Table(tableName)
+    assert table.item_count == 1
+
+    terms = gen_random_strings(50)
+    allowlist_modifyTables.insert_new_terms(org_id, repo_id, terms, dynamodb=db_resource)
+    table = db_resource.Table(tableName)
+    assert table.item_count == 51
+
+    tterms = allowlist_modifyTables.read_repo(org_id, repo_id, dynamodb=db_resource)
+    assert len(terms) == len(tterms)
+    assert all(elem in terms for elem in tterms)
+
+def test_insert_new_terms_with_info(db_resource, setup_repo):
+    assert True
+
+def test_read_repo_with_info(db_resource, setup_repo):
+    tableName = f"{allowlist_modifyTables.tablename_prefix}_{org_id}"
+    table = db_resource.Table(tableName)
+    assert table.item_count == 1
+
+    term = "hello"
+    allowlist_modifyTables.insert_new_term(org_id, repo_id, term, dynamodb=db_resource)
+    table = db_resource.Table(tableName)
+    assert table.item_count == 2
+
+    terms = allowlist_modifyTables.read_repo_with_info(org_id, repo_id, dynamodb=db_resource)
+    assert len(terms) == 1
+    assert terms[0] == {'term':term, 'info':{}}
+
 def test_functions_without_setup(db_resource):
     assert True
