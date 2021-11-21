@@ -14,27 +14,6 @@ Seek-Rats contains the follow components and provides in-depth defence against h
 
 - Code Review , streamlined reporting of non-cross referenced secrets on a secure site when secrets are detected in a commit or pull request. The report can be used to either add to the universal allowlist or post an exposed secret finding to AWS’s Security Hub.
 
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
