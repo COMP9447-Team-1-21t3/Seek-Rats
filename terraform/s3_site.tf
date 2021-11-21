@@ -38,7 +38,7 @@ output "website_bucket_end" {
 
 resource "local_file" "website_bucket_endpoint_webhook" {
     content  = aws_s3_bucket.seek_rats_site.website_endpoint
-    filename = "${path.module}/../Github_Bot/skrts_github_webhook/config.txt"
+    filename = "${path.module}/../skrts_github_webhook/config.txt"
 }
 
 resource "local_file" "website_bucket_endpoint_updater" {

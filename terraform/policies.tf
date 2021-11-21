@@ -161,3 +161,70 @@ resource "aws_iam_policy" "policy" {
     }
   )
 }
+
+
+resource "aws_iam_policy" "policy_tracking_access" {
+  name        = "report_tracking_accessPolicy"
+  path        = "/"
+  description = "An access policy for secrets report tracking functions, which need to be able to access tracking table"
+
+  policy = jsonencode(
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:BatchWriteItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:DeleteItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:UpdateItem"
+                ],
+                "Resource": "arn:aws:dynamodb:*:${local.aws-account-id}:table/tracking*"
+            },
+            {
+                "Sid": "VisualEditor1",
+                "Effect": "Allow",
+                "Action": "dynamodb:Query",
+                "Resource": "arn:aws:dynamodb:*:${local.aws-account-id}:table/tracking"
+            }
+        ]
+    }
+  )
+}
+
+resource "aws_iam_policy" "policy_secret_access" {
+  name        = "report_secret_accessPolicy"
+  path        = "/"
+  description = "An access policy for secrets report secret table and functions"
+
+  policy = jsonencode(
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:BatchWriteItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:DeleteItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:UpdateItem"
+                ],
+                "Resource": "arn:aws:dynamodb:*:${local.aws-account-id}:table/secret*"
+            },
+            {
+                "Sid": "VisualEditor1",
+                "Effect": "Allow",
+                "Action": "dynamodb:Query",
+                "Resource": "arn:aws:dynamodb:*:${local.aws-account-id}:table/secret"
+            }
+        ]
+    }
+  )
+}

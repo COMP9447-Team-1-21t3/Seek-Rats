@@ -37,7 +37,7 @@ resource "aws_lambda_function" "skrts_report_updater" {
 
   source_code_hash = data.archive_file.skrts_report_updater.output_base64sha256
 
-  role = aws_iam_role.lambda_exec.arn
+  role = aws_iam_role.lambda_exec_skrts_updater.arn
 
   layers = [
     aws_lambda_layer_version.status_tracking_CRUD_python38.arn, 
@@ -121,4 +121,46 @@ resource "aws_lambda_permission" "api_gw_updater" {
 
 output "report_updater_api_endpoint" {
   value = aws_apigatewayv2_stage.lambda_updater.invoke_url
+}
+
+resource "aws_iam_role" "lambda_exec_skrts_updater" {
+  name = "skrts_server_updater"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Sid    = ""
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "skrts_updater_webhook_basicexecute" {
+  role       = aws_iam_role.lambda_exec_skrts_updater.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "skrts_updater_role_secret_access" {
+  role       = "${aws_iam_role.lambda_exec_skrts_updater.name}"
+  policy_arn = "${aws_iam_policy.policy_secret_access.arn}"
+}
+
+resource "aws_iam_role_policy_attachment" "skrts_updater_role_tracking_access" {
+  role       = "${aws_iam_role.lambda_exec_skrts_updater.name}"
+  policy_arn = "${aws_iam_policy.policy_tracking_access.arn}"
+}
+
+resource "aws_iam_role_policy_attachment" "skrts_updater_allowlist_access" {
+  role       = "${aws_iam_role.lambda_exec_skrts_updater.name}"
+  policy_arn = "${aws_iam_policy.policy_allowlist_access.arn}"
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_access_skrts_updater" {
+  role       = "${aws_iam_role.lambda_exec_skrts_updater.name}"
+  policy_arn = "${aws_iam_policy.policy.arn}"
 }
