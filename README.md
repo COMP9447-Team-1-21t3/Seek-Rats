@@ -111,9 +111,11 @@ To install on your personal repository
 4. Move the pre-commit_config.yaml to the root of your desired repository
 `mv pre-commit_config.yaml your_repo_root/`
 5. Move the Pre-commit_Hook/gitleaks_checker.py/ to the root of your desired repository
-`mv pre-commit_config.yaml your_repo_root/`
-6. Run `pre-commit install` which sets up the pre commit in your repo
-7. Run `pre commit run` to test the hook before execution
+`mv Pre-commit_Hook/gitleaks_checker.py your_repo_root/`
+6. Rename the pre-commit_config.yaml file with a . at the front. This enables it to be read by the precommit hook
+`mv pre-commit_config.yaml .pre-commit_config.yaml`
+8. Run `pre-commit install` which sets up the pre commit in your repo
+9. Run `pre commit run` to test the hook before execution
 
 If there are no problems your hook has been set up using gitleaks everytime you run a commit.
 
@@ -233,21 +235,18 @@ cd ../../../terraform/
 terraform apply
 ```  
 
-9. Now the secrets backend should be running. Install your application on any repository by going ino GitHub Apps and choosing a repository 
+9. Now the secrets backend should be running. Install your application on any repository by going into GitHub Apps and choose a repository. 
+
+ Seek Rats will now run on pull requests in that repository. (May take around 30-45 seconds to update)
 ![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911924390256574464/unknown.png)
 
-10. (Optional) To enforce pull requests and checks, on a repository go to branches->branch protection rules and you may add a rule.
+11. (Optional) To enforce pull requests and checks, on a repository go to branches->branch protection rules and you may add a rule.
 
-If Seek-Rats has run atleast once your repository, you should be able to enable it in your checks (Named Secrets Review Needed)
-![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911924949634138174/unknown.png?width=1091&height=642)
+	If Seek-Rats has run atleast once your repository, you should be able to enable it in your checks (Named Secrets Review Needed)
+	![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911924949634138174/unknown.png?width=1091&height=642)
 
-![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911925078881632256/unknown.png?width=791&height=643)
+	![enter image description here](https://media.discordapp.net/attachments/894590864242905199/911925078881632256/unknown.png?width=791&height=643)
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<p align="right">(<a href="#top">back to top</a>)</p>
